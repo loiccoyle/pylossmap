@@ -78,7 +78,7 @@ def plot_waterfall(data,
                    meta,
                    title=None,
                    figsize=(20, 10),
-                   min_max_quantile=0.95):
+                   min_max_quantile=0.85):
     """Plots a water plot of the data.
 
     Args:
@@ -95,7 +95,7 @@ def plot_waterfall(data,
         min_quant = min_max_quantile[0]
         max_quant = min_max_quantile[1]
     elif isinstance(min_max_quantile, float):
-        min_quant = min_max_quantile
+        min_quant = 1 - min_max_quantile
         max_quant = min_max_quantile
 
     # set the time axis labels
@@ -108,6 +108,9 @@ def plot_waterfall(data,
     extent = [x_lims[0], x_lims[1], y_lims[0], y_lims[1]]
 
     fig, ax = plt.subplots(figsize=figsize)
+
+    # make sure the columns are sorted in incresing s coord.
+    data = data[meta.sort_values('dcum').index.tolist()]
 
     ax.imshow(data,
               aspect='auto',

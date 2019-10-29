@@ -9,6 +9,8 @@ from .utils import DB
 from .utils import BLM_MAX
 from .headers import HEADERS
 from .data import BLMData
+from .data import BLMDataADT
+from .data import BLMDataCycle
 from .utils import get_ADT
 from .utils import to_datetime
 from .utils import row_from_time
@@ -19,7 +21,7 @@ from .blm_type_map import name_to_type
 
 class LossMapFetcher:
     def __init__(self,
-                 d_t=30*60,
+                 d_t='30M',
                  BLM_var='LHC.BLMI:LOSS_RS09',
                  pbar=True):
         """This class handles the fetching and loading of loss map data.
@@ -27,10 +29,11 @@ class LossMapFetcher:
         and load the appropriate BLM type & coord mapping.
 
         Args:
-            d_t (TYPE, optional): Due to the data limit on an individual query,
-            it will be split into chunks of d_t seconds longs.
+            d_t (str, optional): Due to timber detch size limitations, it
+            will be split into chunks of d_t. d_t must be a pd.Timedelta
+            format str, e.g. 30M, 1H, 10S, ...
             BLM_var (str, optional): Timber/CALS BLM measurement variable.
-            pbar (bool, optional): controls whether to use a diaply progessbars.
+            pbar (bool, optional): controls whether to disply progessbars.
         """
         self.__header = None
         self.__coord_file = Path(__file__).parent / 'metadata' / 'blm_dcum.csv'
@@ -48,6 +51,17 @@ class LossMapFetcher:
         """Clears cached headers.
         """
         self.__header = None
+
+    @staticmethod
+    def _sanitize_t(t):
+        if isinstance(t, (float, int)):
+            t = to_datetime(t)
+        elif isinstance(t, pd.Timestamp):
+            if t.tz is None:
+                t = t.tz_localize('Europe/Zurich')
+            elif t.tz.zone != 'Europe/Zurich':
+                t = t.tz_convert('Europe/Zurich')
+        return t
 
     def from_datetimes(self, t1, t2, keep_headers=False, **kwargs):
         """Create a BLMData instance with data for the requested interval.
@@ -67,6 +81,8 @@ class LossMapFetcher:
         """
         if not keep_headers:
             self.clear_header()
+        t1 = self._sanitize_t(t1)
+        t2 = self._sanitize_t(t2)
 
         meta = self.fetch_meta(t1)
         try:
@@ -88,13 +104,21 @@ class LossMapFetcher:
         keep_bm_df = bm_df.loc[:, keep_mask]
         keep_bm_df = keep_bm_df.applymap(lambda x: np.where(x < t1, t1, x))
         keep_bm_df = keep_bm_df.applymap(lambda x: np.where(x > t2, t2, x))
+        if 'context' not in kwargs:
+            kwargs['context'] = keep_bm_df
 
         data = self._fetch_data_bm(keep_bm_df)
         if data is None:
             raise ValueError('No data found.')
-        return BLMData(data, meta, info=keep_bm_df, **kwargs)
+        BLM_data = BLMData(data, meta, **kwargs)
+        return BLMDataCycle.from_BLM_data(BLM_data)
 
-    def from_fill(self, fill_number, beam_modes='all', keep_headers=False, **kwargs):
+    def from_fill(self,
+                  fill_number,
+                  beam_modes='all',
+                  unique_beam_modes=False,
+                  keep_headers=False,
+                  **kwargs):
         """Create a BLMData instance with data for the requested fill and
         beam modes.
 
@@ -114,12 +138,14 @@ class LossMapFetcher:
             self.clear_header()
 
         fill, bm = self._fetch_beam_modes(fill_number=fill_number,
-                                          subset=beam_modes)
+                                          subset=beam_modes,
+                                          unique_subset=unique_beam_modes)
         meta = self.fetch_meta(fill['startTime'])
         data = self._fetch_data_bm(bm)
         if data is None:
             raise ValueError('No data found.')
-        return BLMData(data, meta, info=fill, **kwargs)
+        BLM_data = BLMData(data, meta, context=bm, **kwargs)
+        return BLMDataCycle.from_BLM_data(BLM_data)
 
     def iter_from_ADT(self, t1, t2,
                  look_forward='5S',
@@ -145,27 +171,41 @@ class LossMapFetcher:
             trigger
         """
         self.clear_header()
+        t1 = self._sanitize_t(t1)
+        t2 = self._sanitize_t(t2)
+
         meta = self.fetch_meta(t1)
 
         joined = get_ADT(t1, t2, planes=planes, beams=beams)
         joined = joined.fillna(method='ffill')
         if not (joined == 1).any(axis=None):
+            # TODO: cleanup the pbar thing ...
             raise ValueError('No ADT triggers within time range.')
         for c in joined.columns:
-            for t in joined[(joined[c] == 1)].index.tolist():
+            triggers = joined[(joined[c] == 1)].index.tolist()
+
+            if self._pbar:
+                triggers = tqdm(triggers, desc=c)
+
+            for t in triggers:
+                # set the BLM_max list to the subset for the chosen beam.
                 BLM_max = [b for b in BLM_MAX if c[4:6] in b]
                 try:
+                    # TODO: This needs to be improved...
+                    context={'trigger_t':t,
+                             'trigger_beam':c[4:6],
+                             'trigger_plane':c[6]}
                     BLM_data = self.from_datetimes(t - pd.Timedelta(look_back),
                                                    t + pd.Timedelta(look_forward),
                                                    BLM_max=BLM_max,
-                                                   info=c,
+                                                   context=context,
                                                    keep_headers=True)
                 except ValueError as e:
                     self._logger.warning(f'For {t}: {e}')
                     continue 
-                yield BLM_data
+                yield BLMDataADT.from_BLM_data(BLM_data)
 
-    def _fetch_beam_modes(self, fill_number, subset='all'):
+    def _fetch_beam_modes(self, fill_number, **kwargs):
         '''Gets the beam mode timing data.
 
         Returns:
@@ -178,7 +218,7 @@ class LossMapFetcher:
         fill_t['startTime'] = to_datetime(bm_t['startTime'])
         fill_t['endTime'] = to_datetime(bm_t['endTime'])
         # put beam mode ts into dataframe
-        bm_df = beammode_to_df(bm_t['beamModes'], subset=subset)
+        bm_df = beammode_to_df(bm_t['beamModes'], **kwargs)
         return fill_t, bm_df
 
     def _get_coord_t(self):
@@ -232,6 +272,7 @@ class LossMapFetcher:
         meta = self._coord_t.loc[meta_time].copy()
         meta['type'] = meta.apply(lambda x: name_to_type(x['blm']),
                                   axis=1)
+        meta = meta.set_index('blm')
         return meta
 
     def fetch_logging_header(self, t1):
@@ -243,7 +284,7 @@ class LossMapFetcher:
         Returns:
             list: list of columns containing the name of BLMs.
         """
-        blms = self.fetch_meta(t1=t1)['blm']
+        blms = self.fetch_meta(t1=t1).index.tolist()
         blms = [b for b in blms if b.split('.')[0] not in ['BLMTS', 'BLMMI',
                                                            'BLMES', 'BLMDS',
                                                            'BLMCK', 'BLMAS',
@@ -335,26 +376,27 @@ class LossMapFetcher:
             DataFrame: MultiIndex DataFrame containing the BLM data for the
             beam modes.
         """
+        # TODO: cleanup the pbar thing ...
         data = []
 
         bm_iter = beam_modes.columns
-        if self._pbar:
+        if self._pbar and len(beam_modes.columns) > 1:
             bm_iter = tqdm(beam_modes.columns, desc='Beam mode')
 
         for mode in bm_iter:
-            if self._pbar:
+            if self._pbar and len(beam_modes.columns) > 1:
                 bm_iter.set_description(f'Beam mode {mode}')
             t_chunks = list(self._date_chunk(beam_modes[mode]['startTime'],
                                              beam_modes[mode]['endTime'],
-                                             pd.Timedelta(f'{self.d_t}S')))
+                                             pd.Timedelta(self.d_t)))
             d = []
 
             t_iter = zip(t_chunks, t_chunks[1:])
-            if self._pbar:
+            if self._pbar and len(t_chunks) - 1 > 1:
                 t_iter = tqdm(t_iter, total=len(t_chunks) - 1)
 
             for t1, t2 in t_iter:
-                if self._pbar:
+                if self._pbar and len(t_chunks) - 1 > 1:
                     t_iter.set_description(f'{t1.strftime("%m-%d %H:%M:%S")} ▶{t2.strftime("%m-%d %H:%M:%S")}')
                 d_i = self._fetch_data_t(t1, t2)
                 if d_i is not None:

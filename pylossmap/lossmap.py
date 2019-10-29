@@ -12,8 +12,10 @@ class LossMap:
                  data,
                  background=None,
                  datetime=None,
+                 context=None,
                  ):
-        '''
+        '''Hanldes the processing of the LossMap data.
+
         Args:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.
             background (DataFrame, optional): BLM background signal.
@@ -25,12 +27,13 @@ class LossMap:
         self.datetime = datetime
         self.data = data
         self.background = background
+        self.context = context
 
     @property
     def meta(self):
         return self.data[self._meta_cols]
 
-    def _copy(self):
+    def copy(self):
         """Creates a copy of the current instance.
 
         Returns:
@@ -52,7 +55,7 @@ class LossMap:
 
 
     def filter(self, reg):
-        ret = self._copy()
+        ret = self.copy()
         ret.data = ret.data.filter(regex=reg, axis='index')
         return ret
 
@@ -69,7 +72,7 @@ class LossMap:
             normalizer = self.data['data'].max()
         elif wrt in self.data.keys():
             normalizer = self.data['data'][wrt]
-        ret = self._copy()
+        ret = self.copy()
         ret.data['data'] /= normalizer
         return ret
 
@@ -79,7 +82,7 @@ class LossMap:
         Returns:
             LossMap: LossMap instance with cleaned data.
         """
-        ret = self._copy()
+        ret = self.copy()
         if self.background is not None:
             ret.data['data'] = ret.data['data'] - ret.background.mean()
         return ret
@@ -143,8 +146,6 @@ class LossMap:
         """
         pad = lambda x: f'{x:02}' if x < 10 else str(x)
         cells = self._sanitize_inp(cells, prepare=pad)
-        # cells = map(pad, cells)
-        # cells = '|'.join(cells)
         return self.filter(rf'\.({cells})[RL][1-8]')
 
     def beam(self, *beams):
@@ -161,6 +162,20 @@ class LossMap:
                                   prepare=lambda x: str(int(x)))
         return self.filter(rf'B({beam})')
 
+    def type(self, types):
+        if not isinstance(types, list):
+            types = [types]
+
+        ret = self.copy()
+        ret.data = self.data[self.data['type'].isin(types)]
+        return ret
+
+    def __getitem__(self, key):
+        ret = self.copy()
+        return ret.data.__getitem__(key)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
     # def TCP_plane(self, beam='auto'):
     #     if beam not in ['auto', 1, 2]:
     #         raise ValueError('"beam" must be either "auto", 1, or 2.')
@@ -206,39 +221,46 @@ class LossMap:
     #     self.data = self._data_bk.copy()
     #     return self
 
-    def plot(self, **kwargs):
-        plot_loss_map(data=self.data['data'],
-                      meta=self.meta,
-                      **kwargs)
+    def plot(self, data=None, **kwargs):
+        if data is None:
+            data = self.data['data']
+        return plot_loss_map(data=data,
+                             meta=self.meta,
+                             **kwargs)
 
 
-# TODO: change the init to a normal init and add a constructor method to do the
-# conversion from lossmap.
 class CollLossMap(LossMap):
-    def __init__(self,
-                 lossmap,
-                 coll_df=None):
+
+    @classmethod
+    def from_loss_map(cls, loss_map, coll_df=None):
+        '''Imports and converts a LossMap instance.
+        '''
+        return cls(loss_map.data,
+                   background=loss_map.background,
+                   datetime=loss_map.datetime,
+                   context=loss_map.context,
+                   coll_df=coll_df)
+
+    def __init__(self, data, coll_df=None, **kwargs):
         """Collimation loss map, this class adds the collimator angle read from
         file, to the data attribute. 
 
         Args:
-            lossmap (LossMap): LossMap instance to convert.
+            data (DataFrame): Dataframe contraining BLM data, dcum, type.
             coll_df (DataFrame, optional): DataFrame containing collimator info.
+            **kwargs: passed to LossMap.__init__.
         """
         if coll_df is None:
             coll_df = coll_meta(augment_b2=True)
 
         out = []
         for blm in coll_df.index:
-            tmp = lossmap.data.loc[lossmap.data.index.str.contains(blm)].copy()
+            tmp = data.loc[data.index.str.contains(blm)].copy()
             if tmp.empty:
                 continue
             tmp['coll_angle'] = coll_df.loc[blm, 'angle']
             out.append(tmp)
         data = pd.concat(out)
-
-        # if drop_negative:
-        #     data = data[data['data'] >= 0]
 
         for plane in ['H', 'V']:
             if plane == 'V':
@@ -246,7 +268,7 @@ class CollLossMap(LossMap):
             elif plane == 'H':
                 data[f'{plane}_weight'] = 1 - data['coll_angle'].map(angle_convert)
 
-        super().__init__(data=data, background=lossmap.background)
+        super().__init__(data, **kwargs)
         self._meta_cols = ['type',
                            'dcum',
                            'coll_angle',
@@ -272,11 +294,12 @@ class CollLossMap(LossMap):
         return weighted.sum() / self.data[f'{plane}_weight'].sum()
 
     def plane(self, plane):
+        # TODO: add SKEW?
         plane_angle = {'H': 1.571,
                        'V': 0}
         if plane not in plane_angle.keys():
             raise ValueError('"plane" must be either "H" or "V".')
 
-        ret = self._copy()
+        ret = self.copy()
         ret.data[ret.data['coll_angle'] == plane_angle[plane]]
         return ret

@@ -74,14 +74,20 @@ def beammode_from_time(t, fill=None, **kwargs):
             return bm
     return fill
 
-def beammode_to_df(beam_mode, subset='all'):
-    # put beam mode ts into dataframe
+def beammode_to_df(beam_mode, subset='all', unique_subset=False):
+    # put beam mode timestamps into dataframe
     beam_mode = pd.DataFrame(beam_mode)
     beam_mode = beam_mode.set_index('mode').T
-    if subset != 'all':
-        beam_mode = beam_mode[subset]
     beam_mode = beam_mode.applymap(to_datetime)
+
+    if not unique_subset:
+        if subset != 'all':
+            beam_mode = beam_mode[subset]
     beam_mode.columns = list(uniquify(beam_mode.columns))
+    if unique_subset:
+        if subset != 'all':
+            beam_mode = beam_mode[subset]
+
     return beam_mode
 
 
