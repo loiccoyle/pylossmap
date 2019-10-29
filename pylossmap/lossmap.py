@@ -14,7 +14,7 @@ class LossMap:
                  datetime=None,
                  context=None,
                  ):
-        '''Hanldes the processing of the LossMap data.
+        '''Handles the processing of the LossMap data.
 
         Args:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.
@@ -52,7 +52,6 @@ class LossMap:
         else:
             inp = map(str, inp)
         return '|'.join(inp)
-
 
     def filter(self, reg):
         ret = self.copy()
@@ -139,7 +138,7 @@ class LossMap:
         """Gets the data for requested cells.
 
         Args:
-            *cells (int): cells of interest. 
+            *cells (int): cells of interest.
 
         Returns:
             LossMap: LossMap of the desired cells.
@@ -243,11 +242,12 @@ class CollLossMap(LossMap):
 
     def __init__(self, data, coll_df=None, **kwargs):
         """Collimation loss map, this class adds the collimator angle read from
-        file, to the data attribute. 
+        file, to the data attribute.
 
         Args:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.
-            coll_df (DataFrame, optional): DataFrame containing collimator info.
+            coll_df (DataFrame, optional): DataFrame containing collimator
+            info.
             **kwargs: passed to LossMap.__init__.
         """
         if coll_df is None:

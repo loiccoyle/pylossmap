@@ -5,15 +5,15 @@ import pandas as pd
 from pathlib import Path
 
 # avoid circular import problem
-from .utils import DB
+# from .utils import DB
 from .utils import BLM_MAX
 from .utils import get_ADT
 from . import loader
 from .lossmap import LossMap
-from .lossmap import CollLossMap
+# from .lossmap import CollLossMap
 from .utils import row_from_time
 from .utils import fill_from_time
-from .utils import beammode_to_df
+# from .utils import beammode_to_df
 from .plotting import plot_waterfall
 
 
@@ -140,9 +140,8 @@ class BLMData:
                        datetime=datetime,
                        context=context)
 
-
     def save(self, file_path):
-        """Save the DataFrames to hdf file/keys,
+        """Save the DataFrames to hdf file/keys.
 
         Args:
             file_path (str/path): Path to hdf file in which to save the
@@ -159,11 +158,11 @@ class BLMData:
         self.meta.to_hdf(file_path, key='meta')
 
     def plot(self, data=None, **kwargs):
-        """Plots a waterfall plot of the data. Note, will produce multitple
-        figures if data contains a mode index. 
+        """Plots a waterfall plot of the data. Note, will produce multiple
+        figures if data contains a mode index.
 
         Args:
-            data (DataFrame, optional): DataFrame contaning the BLM data.
+            data (DataFrame, optional): DataFrame containing the BLM data.
             **kwargs: passed to plotting.plot_waterfall
         """
         # TODO: fix this format mode thing
@@ -194,17 +193,18 @@ class BLMDataImport:
                    BLM_max=BLM_data.BLM_max,
                    context=BLM_data.context)
 
+
 class BLMDataCycle(BLMData, BLMDataImport):
-    '''BLMData variant for data coming from nominal cycle, e.i. not commissioning/ADT
-    based data.
+    '''BLMData variant for data coming from nominal cycle, e.i. not
+    commissioning/ADT based data.
     '''
 
     def get_bg(self, t=None):
         """Get background signal from the INJPROT beam modes.
 
         Args:
-            t (Datetime, optional): Time of data, if None, will take the timestamp of
-            the first value.
+            t (Datetime, optional): Time of data, if None, will take the
+            timestamp of the first value.
 
         Returns:
             DataFrame: DataFrame containing the background INJPROT BLM data.
@@ -212,7 +212,8 @@ class BLMDataCycle(BLMData, BLMDataImport):
         if 'INJPROT' in self.data.index.get_level_values('mode'):
             inj_prot_df = self.data.loc['INJPROT']
         else:
-            self._logger.info('INJPROT not in current data, will fetch from Timber.')
+            self._logger.info(('INJPROT not in current data, will fetch from '
+                               'Timber.'))
             if t is None:
                 t = self.data.index.get_level_values('timestamp')[0]
             fill = fill_from_time(t)
@@ -228,14 +229,18 @@ class BLMDataADT(BLMData, BLMDataImport):
     loss maps.
     '''
 
-    def get_bg(self, trigger_t=None, dt_prior='0S', dt_post='3S', look_back='2H'):
+    def get_bg(self,
+               trigger_t=None,
+               dt_prior='0S',
+               dt_post='3S',
+               look_back='2H'):
         """Fetches the appropriate background data by looking at the triggers
         of the ADT and figuring out a correct time range, where no triggers
         occured.
 
         Args:
-            trigger_t (Datetime, optional): Time of ADT trigger, if None, will take the timestamp of
-            the first value.
+            trigger_t (Datetime, optional): Time of ADT trigger, if None, will
+            take the timestamp of the first value.
             dt_prior (str, optional): time delta prior to adt turn on.
             dt_post (str, optional): time delta post previous adt turn off.
             look_back (str, optional): look back from t when fetching adt

@@ -33,7 +33,7 @@ class LossMapFetcher:
             will be split into chunks of d_t. d_t must be a pd.Timedelta
             format str, e.g. 30M, 1H, 10S, ...
             BLM_var (str, optional): Timber/CALS BLM measurement variable.
-            pbar (bool, optional): controls whether to disply progessbars.
+            pbar (bool, optional): controls whether to display progessbars.
         """
         self.__header = None
         self.__coord_file = Path(__file__).parent / 'metadata' / 'blm_dcum.csv'
@@ -88,7 +88,7 @@ class LossMapFetcher:
         try:
             fill1 = fill_from_time(t1)
             fill2 = fill_from_time(t2)
-        except ValueError as e:
+        except ValueError:
             fill1 = fill_from_time(t1, fuzzy_t='24H')
             fill2 = fill_from_time(t2, fuzzy_t='24H')
 
@@ -148,11 +148,11 @@ class LossMapFetcher:
         return BLMDataCycle.from_BLM_data(BLM_data)
 
     def iter_from_ADT(self, t1, t2,
-                 look_forward='5S',
-                 look_back='0S',
-                 planes=['H', 'V'],
-                 beams=[1, 2],
-                 **kwargs):
+                      look_forward='5S',
+                      look_back='0S',
+                      planes=['H', 'V'],
+                      beams=[1, 2],
+                      **kwargs):
         """Generator of BLMData instances around ADT blowup triggers.
 
         Args:
@@ -174,8 +174,6 @@ class LossMapFetcher:
         t1 = self._sanitize_t(t1)
         t2 = self._sanitize_t(t2)
 
-        meta = self.fetch_meta(t1)
-
         joined = get_ADT(t1, t2, planes=planes, beams=beams)
         joined = joined.fillna(method='ffill')
         if not (joined == 1).any(axis=None):
@@ -192,9 +190,9 @@ class LossMapFetcher:
                 BLM_max = [b for b in BLM_MAX if c[4:6] in b]
                 try:
                     # TODO: This needs to be improved...
-                    context={'trigger_t':t,
-                             'trigger_beam':c[4:6],
-                             'trigger_plane':c[6]}
+                    context = {'trigger_t': t,
+                               'trigger_beam': c[4:6],
+                               'trigger_plane': c[6]}
                     BLM_data = self.from_datetimes(t - pd.Timedelta(look_back),
                                                    t + pd.Timedelta(look_forward),
                                                    BLM_max=BLM_max,
@@ -202,7 +200,7 @@ class LossMapFetcher:
                                                    keep_headers=True)
                 except ValueError as e:
                     self._logger.warning(f'For {t}: {e}')
-                    continue 
+                    continue
                 yield BLMDataADT.from_BLM_data(BLM_data)
 
     def _fetch_beam_modes(self, fill_number, **kwargs):
@@ -370,7 +368,7 @@ class LossMapFetcher:
 
         Args:
             beam_modes (DataFrame): DataFrame containing beam modes as
-            columns and "starTime", "endTime" as index.
+            columns and "startTime", "endTime" as index.
 
         Returns:
             DataFrame: MultiIndex DataFrame containing the BLM data for the
@@ -402,11 +400,11 @@ class LossMapFetcher:
                 if d_i is not None:
                     d.append(d_i)
             if d:
-                d = pd.concat(d)  # , keys=range(len(t_chunks)), names=['chunk'])
+                d = pd.concat(d)
                 data.append(d)
 
         if not data:
-            return 
+            return
 
         data = pd.concat(data,
                          keys=list(beam_modes.columns),
