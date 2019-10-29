@@ -37,6 +37,7 @@ def uniquify(iterable):
         yield newitem
         seen.add(newitem)
 
+
 def to_datetime(ts):
     return pd.to_datetime(ts,
                           unit='s',
@@ -73,6 +74,7 @@ def beammode_from_time(t, fill=None, **kwargs):
         if t >= to_datetime(bm['startTime']) and t <= to_datetime(bm['endTime']):
             return bm
     return fill
+
 
 def beammode_to_df(beam_mode, subset='all', unique_subset=False):
     # put beam mode timestamps into dataframe

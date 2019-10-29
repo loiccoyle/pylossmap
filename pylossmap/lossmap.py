@@ -209,7 +209,7 @@ class LossMap:
         return b/self.data['data'].sum()
 
     def cleaning(self, IR=7):
-        return self.IR(IR).DS().data['data'].max() / self.IR(IR).TCP().data['data'].max() 
+        return self.IR(IR).DS().data['data'].max() / self.IR(IR).TCP().data['data'].max()
 
     def __repr__(self):
         return f"LossMap:\n\

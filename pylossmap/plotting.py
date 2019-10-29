@@ -38,7 +38,8 @@ def plot_loss_map(data,
 
     if title is None:
         try:
-            title = f'Beam Mode: {data.name[0]}, Timestamp: {data.name[2].strftime("%Y-%m-%d %H:%M:%S:%f")}'
+            title = (f'Beam Mode: {data.name[0]}, '
+                     f'Timestamp: {data.name[2].strftime("%Y-%m-%d %H:%M:%S:%f")}')
         except Exception:
             pass
 
