@@ -128,6 +128,10 @@ class LossMapFetcher:
             fill_number (int): fill of interest.
             beam_modes (str/list, optional): either 'all' to get data for
             all beam modes, or a list of beam modes to only request a subset.
+            unique_beam_modes (bool, optional): If a fill contains multiple of
+            the same beam mode, they will be uniquified, INJPHYS, INJPHYS -->
+            INJPHYS, INJPHYS_2. Setting unique_beam_modes to True and providing
+            INJPHYS_2 in beam_modes will select the second beam mode.
             keep_headers (optional, bool): Controls whether to clear the
             headers before fetching data.
             **kwargs: passed to BLMData __init__.
@@ -213,6 +217,9 @@ class LossMapFetcher:
 
     def _fetch_beam_modes(self, fill_number, **kwargs):
         '''Gets the beam mode timing data.
+
+        Args:
+            fill_number (int): fill of interest.
 
         Returns:
             tuple (dict, DataFrame): dict containing Datetime of fill start

@@ -19,10 +19,13 @@ def plot_loss_map(data,
     Args:
         data (Series): Series with as index the blms and value the
         measurement [Gy/s]
+        meta (DataFrame): BLM metadata.
         xtick_labels (list, optional): list of BLM names to add to the x
         axis.
         figsize (tuple, optional): figure size in inches.
         title (str, optional): figure title.
+        x_lim (tuple, optional): x axis limits.
+        y_lim (tuple, optional): y axis limits.
         **kwargs: forwarded to plt.bar.
 
     Returns:
@@ -84,6 +87,7 @@ def plot_waterfall(data,
 
     Args:
         data (DataFrame): DataFrame containing BLM data.
+        meta (DataFrame): BLM metadata.
         title (str, optional): figure title.
         figsize (tuple, optional): figure size in inches.
         min_max_quantile (tuple/float, optional): colormap min/max

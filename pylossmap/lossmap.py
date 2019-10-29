@@ -37,7 +37,7 @@ class LossMap:
         """Creates a copy of the current instance.
 
         Returns:
-            LossMap: Copied LossMap
+            LossMap: Copied LossMap instance.
         """
         return copy.deepcopy(self)
 
