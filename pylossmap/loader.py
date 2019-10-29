@@ -70,6 +70,8 @@ class LossMapFetcher:
         Args:
             t1 (Datetime): interval start.
             t2 (Datetime): interval end.
+            keep_headers (optional, bool): Controls whether to clear the
+            headers before fetching data.
             **kwargs: pass to BLMData __init__.
 
         Returns:
@@ -126,6 +128,8 @@ class LossMapFetcher:
             fill_number (int): fill of interest.
             beam_modes (str/list, optional): either 'all' to get data for
             all beam modes, or a list of beam modes to only request a subset.
+            keep_headers (optional, bool): Controls whether to clear the
+            headers before fetching data.
             **kwargs: passed to BLMData __init__.
 
         Returns:
@@ -152,6 +156,7 @@ class LossMapFetcher:
                       look_back='0S',
                       planes=['H', 'V'],
                       beams=[1, 2],
+                      keep_headers=False,
                       **kwargs):
         """Generator of BLMData instances around ADT blowup triggers.
 
@@ -164,13 +169,16 @@ class LossMapFetcher:
             much data before ADT trigger to fetch.
             planes (list, optional): ADT trigger planes of interest.
             beams (list, optional): ADT trigger beams of itnerest.
+            keep_headers (optional, bool): Controls whether to clear the
+            headers before fetching data.
             **kwargs: passed to BLMData __init__.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
             trigger
         """
-        self.clear_header()
+        if not keep_headers:
+            self.clear_header()
         t1 = self._sanitize_t(t1)
         t2 = self._sanitize_t(t2)
 
@@ -207,8 +215,8 @@ class LossMapFetcher:
         '''Gets the beam mode timing data.
 
         Returns:
-            tuple(dict, DataFrame): dict containing Datetime of fill start time
-            & fill end ts, DataFrame of beam mode start & end.
+            tuple (dict, DataFrame): dict containing Datetime of fill start
+            time & fill end ts, DataFrame of beam mode start & end.
         '''
         bm_t = self._db.getLHCFillData(fill_number=fill_number)
         # put fill start and end into dict
@@ -253,16 +261,16 @@ class LossMapFetcher:
             yield (start + diff * i)
         yield end
 
-    def fetch_meta(self, t1):
+    def fetch_meta(self, t):
         """Gets the metadata corresponding to the requested timestamp.
 
         Args:
-            t1 (Datetime): Time of data.
+            t (Datetime): Time of data.
 
         Returns:
             DataFrame: DataFrame containing blm, position and type.
         """
-        meta_time_ind = self._coord_t.index.levels[0].get_loc(t1,
+        meta_time_ind = self._coord_t.index.levels[0].get_loc(t,
                                                               method='ffill')
         meta_time = self._coord_t.index.levels[0][meta_time_ind]
         self._logger.info(f'Using meta from {meta_time}.')
@@ -273,27 +281,27 @@ class LossMapFetcher:
         meta = meta.set_index('blm')
         return meta
 
-    def fetch_logging_header(self, t1):
+    def fetch_logging_header(self, t):
         """Fetch the fill's column names from independent logging headers.
 
         Args:
-            t1 (DateTime): Time of data.
+            t (DateTime): Time of data.
 
         Returns:
             list: list of columns containing the name of BLMs.
         """
-        blms = self.fetch_meta(t1=t1).index.tolist()
+        blms = self.fetch_meta(t=t).index.tolist()
         blms = [b for b in blms if b.split('.')[0] not in ['BLMTS', 'BLMMI',
                                                            'BLMES', 'BLMDS',
                                                            'BLMCK', 'BLMAS',
                                                            'BLMCD']]
         return blms
 
-    def fetch_force_header(self, t1):
+    def fetch_force_header(self, t):
         """Fetch the fill's column names from header.py file.
 
         Args:
-            t1 (DateTime): Time of data.
+            t (DateTime): Time of data.
 
         Returns:
             list: list of columns containing the name of BLMs.
@@ -303,13 +311,13 @@ class LossMapFetcher:
         headers.index = pd.to_datetime(headers.index).tz_localize('Europe/Zurich')
         headers = headers.sort_index()
         headers.index.name = 'timestamp'
-        return row_from_time(headers, t1, method='ffill').dropna().tolist()
+        return row_from_time(headers, t, method='ffill').dropna().tolist()
 
-    def fetch_timber_header(self, t1):
+    def fetch_timber_header(self, t):
         """Fetch the fill's column names from timber.
 
         Args:
-            t1 (Datetime): time of data.
+            t (Datetime): time of data.
 
         Returns:
             list: list of columns containing the name of BLMs.
@@ -318,7 +326,7 @@ class LossMapFetcher:
         metadata = pd.DataFrame(list(metadata[1]),
                                 index=to_datetime(metadata[0]))
         metadata.index.name = 'timestamp'
-        columns = row_from_time(metadata, t1,
+        columns = row_from_time(metadata, t,
                                 method='ffill').dropna().tolist()
         return columns
 

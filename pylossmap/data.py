@@ -108,8 +108,8 @@ class BLMData:
         """Creates a LossMap instance.
 
         Args:
-            datetime (Datetime, optional): If provided, is used to find a desired row
-            in the data which corresponds to datetime.
+            datetime (Datetime, optional): If provided, is used to find a
+            desired row in the data which corresponds to datetime.
             row (Series, optional): Row of data for which to create the LossMap
             instance.
             background (DataFrame, optional): BLM data background data.
