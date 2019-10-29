@@ -1,3 +1,3 @@
 # pylossmaps
 
-Lossmap data ftcher/handler.
+Lossmap data fetcher/handler.
