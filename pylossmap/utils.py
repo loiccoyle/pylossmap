@@ -3,18 +3,19 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+from . import timber_vars
+
 DB = pytimber.LoggingDB()
 
-BLM_MAX = ['BLMTI.06L3.B1I10_TCP.6L3.B1',
-           'BLMTI.06R3.B2E10_TCP.6R3.B2',
-           'BLMTI.06L7.B1E10_TCP.D6L7.B1',
-           'BLMTI.06L7.B1E10_TCP.C6L7.B1',
-           'BLMTI.06L7.B1E10_TCP.B6L7.B1',
-           'BLMTI.06R7.B2I10_TCP.B6R7.B2',
-           'BLMTI.06R7.B2I10_TCP.C6R7.B2',
-           'BLMTI.06R7.B2I10_TCP.D6R7.B2']
-
-ADT_VAR = 'ADT{plane}.SR4.B{beam}:BLOWUP_RUNNING'
+# TODO: Figure out how to get the accelerator mode.
+#                              Timber var,               timeseries
+BEAM_META = {'intensity':      (timber_vars.INTENSITY,   True),
+             'filling_scheme': (timber_vars.FILL_SCHEME, False),
+             'number_bunches': (timber_vars.BUNCH_NUM,   False),
+             'energy':         (timber_vars.ENERGY,      True),
+             # 'amode':          (timber_vars.ACCEL_MODE,  False),
+             # 'bmode':          (timber_vars.BEAM_MODE,   False),
+             }
 
 
 def uniquify(iterable):
@@ -142,7 +143,8 @@ def get_ADT(t1, t2, planes=['H', 'V'], beams=[1, 2]):
     columns = []
     for plane in planes:
         for beam in beams:
-            ADT_vars.append(ADT_VAR.format(plane=plane, beam=beam))
+            ADT_vars.append(timber_vars.ADT_TRIGGER.format(plane=plane,
+                                                           beam=beam))
             columns.append(f'ADT_B{beam}{plane}')
 
     data = DB.get(ADT_vars,
@@ -161,3 +163,14 @@ def get_ADT(t1, t2, planes=['H', 'V'], beams=[1, 2]):
 
     joined = dfs[0]
     return joined
+
+
+def sanitize_t(t):
+    if isinstance(t, (float, int)):
+        t = to_datetime(t)
+    elif isinstance(t, pd.Timestamp):
+        if t.tz is None:
+            t = t.tz_localize('Europe/Zurich')
+        elif t.tz.zone != 'Europe/Zurich':
+            t = t.tz_convert('Europe/Zurich')
+    return t

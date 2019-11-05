@@ -2,6 +2,8 @@ import copy
 import logging
 import pandas as pd
 
+from .utils import DB
+from .utils import BEAM_META
 from .utils import coll_meta
 from .utils import angle_convert
 from .plotting import plot_loss_map
@@ -20,26 +22,19 @@ class LossMap:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.
             background (DataFrame, optional): BLM background signal.
             datetime (Datetime, optional): Datetime of the data.
+            context (optional): additional context information.
         '''
 
         self._logger = logging.getLogger(__name__)
         self._meta_cols = ['type', 'dcum']
         self.datetime = datetime
         self.data = data
-        self.background = background
+        self._background = None
         self.context = context
 
     @property
     def meta(self):
         return self.data[self._meta_cols]
-
-    def copy(self):
-        """Creates a copy of the current instance.
-
-        Returns:
-            LossMap: Copied LossMap instance.
-        """
-        return copy.deepcopy(self)
 
     @staticmethod
     def _sanitize_inp(inp, prepare=None, check=None):
@@ -52,6 +47,35 @@ class LossMap:
         else:
             inp = map(str, inp)
         return '|'.join(inp)
+
+    def set_background(self, LM_bg):
+        '''Links the provided background LossMap to this one.
+
+        Args:
+            LM_bg (LossMap): Background LossMap
+        '''
+        self._background = LM_bg.copy()
+
+    def get_background(self):
+        '''Returns the linked background LossMap
+
+        Returns:
+            LossMap: the linked LossMap instance.
+        '''
+        return self._background
+
+    def _check_datetime(self):
+        if self.datetime is None:
+            raise ValueError("'datetime' attribute must be set to be able to "
+                             "fetch Timber data")
+
+    def copy(self):
+        """Creates a copy of the current instance.
+
+        Returns:
+            LossMap: Copied LossMap instance.
+        """
+        return copy.deepcopy(self)
 
     def filter(self, reg):
         ret = self.copy()
@@ -75,15 +99,16 @@ class LossMap:
         ret.data['data'] /= normalizer
         return ret
 
-    def clean_bg(self):
+    def clean_background(self):
         """Removes the background from the data.
 
         Returns:
             LossMap: LossMap instance with cleaned data.
         """
+        if self._background is None:
+            raise ValueError('background not set, use self.set_background.')
         ret = self.copy()
-        if self.background is not None:
-            ret.data['data'] = ret.data['data'] - ret.background.mean()
+        ret.data['data'] = ret.data['data'] - ret._background.data['data']
         return ret
 
     def DS(self):
@@ -143,8 +168,12 @@ class LossMap:
         Returns:
             LossMap: LossMap of the desired cells.
         """
-        pad = lambda x: f'{x:02}' if x < 10 else str(x)
-        cells = self._sanitize_inp(cells, prepare=pad)
+
+        def pad(x):
+            return f'{x:02}' if x < 10 else str(x)
+
+        cells = self._sanitize_inp(cells,
+                                   prepare=pad)
         return self.filter(rf'\.({cells})[RL][1-8]')
 
     def beam(self, *beams):
@@ -169,12 +198,6 @@ class LossMap:
         ret.data = self.data[self.data['type'].isin(types)]
         return ret
 
-    def __getitem__(self, key):
-        ret = self.copy()
-        return ret.data.__getitem__(key)
-
-    def __setitem__(self, key, value):
-        self.data.__setitem__(key, value)
     # def TCP_plane(self, beam='auto'):
     #     if beam not in ['auto', 1, 2]:
     #         raise ValueError('"beam" must be either "auto", 1, or 2.')
@@ -202,23 +225,39 @@ class LossMap:
             beam (int): requested beam.
 
         Returns:
-            float: requsted beam summed/total losses.
+            float: requested beam summed/total losses.
         """
         b = self.beam(beam).data['data']
         b = b.sum()
         return b/self.data['data'].sum()
 
     def cleaning(self, IR=7):
-        return self.IR(IR).DS().data['data'].max() / self.IR(IR).TCP().data['data'].max()
+        return (self.IR(IR).DS().data['data'].max() /
+                self.IR(IR).TCP().data['data'].max())
+
+    def __getitem__(self, key):
+        ret = self.copy()
+        ret.data = ret.data.__getitem__(key)
+        return ret
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
+
+    # def __add__(self, other):
+    #     ret = self.copy()
+    #     return ret.data['data'] + other.data['data']
+
+    # def __sub__(self, other):
+    #     ret = self.copy()
+    #     return ret.data['data'] - other.data['data']
 
     def __repr__(self):
-        return f"LossMap:\n\
-\tdata:\n{self.data.__repr__()}\n\
-\tbackground:\n{self.background.__repr__()}"
+        bg_str = ""
+        if self._background is not None:
+            bg_str = f"\n\tbackground:\n{self._background.data.__repr__()}"
 
-    # def restore(self):
-    #     self.data = self._data_bk.copy()
-    #     return self
+        return f"LossMap:\n\
+\tdata:\n{self.data.__repr__()}" + bg_str
 
     def plot(self, data=None, **kwargs):
         if data is None:
@@ -226,6 +265,31 @@ class LossMap:
         return plot_loss_map(data=data,
                              meta=self.meta,
                              **kwargs)
+
+
+# Dynamically add beam meta fetching methods
+for k, (v, series) in BEAM_META.items():
+
+    def fetch(self, v=v, return_raw=False, **kwargs):
+        self._check_datetime()
+        v = v.format(**kwargs)
+        out = DB.get(v, self.datetime)[v]
+        if not return_raw:
+            out = out[1][0]
+        return out
+    name = f'get_{k}'
+    fetch.__name__ = name
+    fetch.__doc__ = (f"Gets the {k} value from timber closest to the datetime"
+                     " attribute.\n"
+                     "Args:\n"
+                     "\tv (str, optional): Timber varibale.\n"
+                     "\treturn_raw (bool, optional): if True, returns "
+                     "the timestamps along with the data.\n"
+                     "\n"
+                     "Returns:\n"
+                     "\tfloat or tuple: data point, if return_raw is "
+                     "True, returns tuple (timestamp, data).")
+    setattr(LossMap, name, fetch)
 
 
 class CollLossMap(LossMap):
@@ -241,8 +305,8 @@ class CollLossMap(LossMap):
                    coll_df=coll_df)
 
     def __init__(self, data, coll_df=None, **kwargs):
-        """Collimation loss map, this class adds the collimator angle read from
-        file, to the data attribute.
+        """Restricts BLMs to the collimator BLMs and adds adds the collimator
+        angle read from file, to the data attribute.
 
         Args:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.

@@ -6,20 +6,18 @@ from pathlib import Path
 from tqdm.auto import tqdm
 
 from .utils import DB
-from .utils import BLM_MAX
-from .headers import HEADERS
+from .metadata.headers import HEADERS
 from .data import BLMData
-from .data import BLMDataADT
-from .data import BLMDataCycle
 from .utils import get_ADT
 from .utils import to_datetime
 from .utils import row_from_time
 from .utils import beammode_to_df
 from .utils import fill_from_time
+from .utils import sanitize_t
 from .blm_type_map import name_to_type
 
 
-class LossMapFetcher:
+class BLMDataFetcher:
     def __init__(self,
                  d_t='30M',
                  BLM_var='LHC.BLMI:LOSS_RS09',
@@ -52,17 +50,6 @@ class LossMapFetcher:
         """
         self.__header = None
 
-    @staticmethod
-    def _sanitize_t(t):
-        if isinstance(t, (float, int)):
-            t = to_datetime(t)
-        elif isinstance(t, pd.Timestamp):
-            if t.tz is None:
-                t = t.tz_localize('Europe/Zurich')
-            elif t.tz.zone != 'Europe/Zurich':
-                t = t.tz_convert('Europe/Zurich')
-        return t
-
     def from_datetimes(self, t1, t2, keep_headers=False, **kwargs):
         """Create a BLMData instance with data for the requested interval.
         Note: the time interval cannot cross fill boundaries.
@@ -75,7 +62,7 @@ class LossMapFetcher:
             **kwargs: pass to BLMData __init__.
 
         Returns:
-            BLMData: BLMData instance with the desired data.
+            BLMDataCycle: BLMDataCycle instance with the desired data.
 
         Raises:
             ValueError: if time interval crosses fill boundaries, or no
@@ -83,8 +70,8 @@ class LossMapFetcher:
         """
         if not keep_headers:
             self.clear_header()
-        t1 = self._sanitize_t(t1)
-        t2 = self._sanitize_t(t2)
+        t1 = sanitize_t(t1)
+        t2 = sanitize_t(t2)
 
         meta = self.fetch_meta(t1)
         try:
@@ -113,7 +100,7 @@ class LossMapFetcher:
         if data is None:
             raise ValueError('No data found.')
         BLM_data = BLMData(data, meta, **kwargs)
-        return BLMDataCycle.from_BLM_data(BLM_data)
+        return BLM_data
 
     def from_fill(self,
                   fill_number,
@@ -153,7 +140,77 @@ class LossMapFetcher:
         if data is None:
             raise ValueError('No data found.')
         BLM_data = BLMData(data, meta, context=bm, **kwargs)
-        return BLMDataCycle.from_BLM_data(BLM_data)
+        return BLM_data
+
+    def bg_from_ADT_trigger(self,
+                            trigger_t,
+                            dt_prior='0S',
+                            dt_post='2S',
+                            look_back='6H',
+                            look_forward='5S',
+                            max_dt='30S'):
+        """Fetches the appropriate background data by looking at the triggers
+        of the ADT and figuring out a correct time range, where no triggers
+        occured.
+
+        Args:
+            trigger_t (Datetime, optional): Time of ADT trigger, if None, will
+            take the timestamp of the first value.
+            dt_prior (str, optional): time delta prior to adt turn on.
+            dt_post (str, optional): time delta post previous adt turn off.
+            look_back (str, optional): look back from trigger_t when
+            fetching adt trigger data.
+            look_forward (str, optional): look forward from trigger_t when
+            fetching adt trigger data.
+            max_dt (str, optional): max time interval of the background.
+
+        Returns:
+            DataFrame: DataFrame containing the background signal.
+        """
+        if trigger_t is None:
+            trigger_t = self.data.index.get_level_values('timestamp')[0]
+        else:
+            trigger_t = sanitize_t(trigger_t)
+
+        max_dt = pd.Timedelta(max_dt)
+
+        joined = get_ADT(trigger_t - pd.Timedelta(look_back),
+                         trigger_t + pd.Timedelta(look_forward))
+        joined = joined.fillna(method='ffill')
+        if not (joined == 1).any(axis=None):
+            raise ValueError('No ADT triggers within time range.')
+        # remove consecutive adt on
+        joined = joined.fillna(method='ffill')
+        joined = joined[~np.logical_and(joined.shift() == joined,
+                                        joined == 1).any(axis=1)]
+
+        # find falling edges
+        pattern = [1, 0]
+        matched_t1 = joined.rolling(len(pattern)).apply(lambda x: all(np.equal(x, pattern)),
+                                                        raw=False)
+        matched_t1 = matched_t1.sum(axis=1).astype(bool)
+        # find rising edges
+        pattern = [0, 1]
+        matched_t2 = joined.rolling(len(pattern)).apply(lambda x: all(np.equal(x, pattern)),
+                                                        raw=False)
+        matched_t2 = matched_t2.sum(axis=1).astype(bool)
+        t2 = joined[matched_t2].index[-1] + pd.Timedelta(dt_prior)
+        try:
+            # if there is no adt turn off in the look back data. Fallback on
+            # max dt
+            t1 = (joined[np.logical_and(matched_t1, joined.index < t2)].index[-1] +
+                  pd.Timedelta(dt_post))
+        except IndexError:
+            t1 = t2 - max_dt
+        if t2 - t1 > max_dt:
+            t1 = t2 - max_dt
+
+        if t1 > t2:
+            raise ValueError(f'Failed to fetch background: {t1} > {t2}')
+        else:
+            self._logger.info(f'Backgound t1: {t1}')
+            self._logger.info(f'Backgound t2: {t2}')
+            return self.from_datetimes(t1, t2)
 
     def iter_from_ADT(self, t1, t2,
                       look_forward='5S',
@@ -161,6 +218,7 @@ class LossMapFetcher:
                       planes=['H', 'V'],
                       beams=[1, 2],
                       keep_headers=False,
+                      yield_background=False,
                       **kwargs):
         """Generator of BLMData instances around ADT blowup triggers.
 
@@ -173,18 +231,20 @@ class LossMapFetcher:
             much data before ADT trigger to fetch.
             planes (list, optional): ADT trigger planes of interest.
             beams (list, optional): ADT trigger beams of itnerest.
-            keep_headers (optional, bool): Controls whether to clear the
+            keep_headers (bool, optional): Controls whether to clear the
             headers before fetching data.
+            yield_background (bool, optional): yield both the BLM data nd the
+            BLM background.
             **kwargs: passed to BLMData __init__.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
-            trigger
+            trigger.
         """
         if not keep_headers:
             self.clear_header()
-        t1 = self._sanitize_t(t1)
-        t2 = self._sanitize_t(t2)
+        t1 = sanitize_t(t1)
+        t2 = sanitize_t(t2)
 
         joined = get_ADT(t1, t2, planes=planes, beams=beams)
         joined = joined.fillna(method='ffill')
@@ -199,27 +259,35 @@ class LossMapFetcher:
 
             for t in triggers:
                 # set the BLM_max list to the subset for the chosen beam.
-                BLM_max = [b for b in BLM_MAX if c[4:6] in b]
                 try:
-                    # TODO: This needs to be improved...
+                    beam_plane_token = c.split('_')[-1]
                     context = {'trigger_t': t,
-                               'trigger_beam': c[4:6],
-                               'trigger_plane': c[6]}
+                               'trigger_beam': beam_plane_token[1],
+                               'trigger_plane': beam_plane_token[-1]}
                     BLM_data = self.from_datetimes(t - pd.Timedelta(look_back),
                                                    t + pd.Timedelta(look_forward),
-                                                   BLM_max=BLM_max,
                                                    context=context,
                                                    keep_headers=True)
+                    if yield_background:
+                        try:
+                            BLM_bg = self.bg_from_ADT_trigger(t)
+                        except ValueError as e:
+                            BLM_bg = None
+                            self._logger.warning(e)
+                        out = (BLM_data, BLM_bg)
+                    else:
+                        out = BLM_data
                 except ValueError as e:
                     self._logger.warning(f'For {t}: {e}')
                     continue
-                yield BLMDataADT.from_BLM_data(BLM_data)
+                yield out
 
     def _fetch_beam_modes(self, fill_number, **kwargs):
         '''Gets the beam mode timing data.
 
         Args:
             fill_number (int): fill of interest.
+            **kwargs: forwarded to utils.beammode_to_df
 
         Returns:
             tuple (dict, DataFrame): dict containing Datetime of fill start

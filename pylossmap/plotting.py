@@ -46,6 +46,9 @@ def plot_loss_map(data,
         except Exception:
             pass
 
+    if x_lim is None:
+        x_lim = [meta['dcum'].min(), meta['dcum'].max()]
+
     fig, ax = plt.subplots(figsize=figsize)
     for typ in types:
         mask = meta['type'] == typ
@@ -64,6 +67,7 @@ def plot_loss_map(data,
         ax.set_ylim(y_lim)
     if x_lim is not None:
         # x_lim = [0, meta['coord'].max()]
+        # meta['coord'].max()
         ax.set_xlim(x_lim)
 
     ax.set_yscale('log')
