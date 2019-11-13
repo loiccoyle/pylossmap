@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .utils import DB
 from .metadata.headers import HEADERS
+from .timber_vars import INTENSITY
 from .data import BLMData
 from .utils import get_ADT
 from .utils import to_datetime
@@ -150,6 +151,45 @@ class BLMDataFetcher:
         BLM_data = BLMData(data, meta, context=bm, **kwargs)
         return BLM_data
 
+    def bg_from_INJPROT(self, fill_number):
+        """Fetches BLM data of the INJPROT beam mode when there is no beam.
+
+        Args:
+            fill_number (int): fill number of the fill of interest.
+
+        Returns:
+            BLMData: BLMData instance with the INJPROT background data.
+        """
+        fills, bm = self._fetch_beam_modes(fill_number=fill_number,
+                                           subset=['INJPROT'],
+                                           unique_subset=True)
+
+        # TODO: maybe move this to utils ? and reuse it in get_ADT
+        def timber_to_df(t_dict, key):
+            out = t_dict[key]
+            out = pd.DataFrame(np.vstack(out).T, columns=['timestamp', key])
+            out['timestamp'] = pd.to_datetime(out['timestamp'],
+                                              unit='s',
+                                              utc=True).dt\
+                .tz_convert('Europe/Zurich')
+            out.set_index('timestamp', inplace=True)
+            return out
+
+        t_vars = [INTENSITY.format(beam=1), INTENSITY.format(beam=2)]
+        out = DB.get(t_vars,
+                     bm['INJPROT']['startTime'],
+                     bm['INJPROT']['endTime'])
+        b1 = timber_to_df(out, INTENSITY.format(beam=1))
+        b2 = timber_to_df(out, INTENSITY.format(beam=2))
+        intensity = pd.concat([b1, b2], axis=1)
+        no_beam = (intensity < 1e4).all(axis=1)
+        t1 = intensity[no_beam].index[0]
+        if (~no_beam).any():
+            t2 = intensity[~no_beam].index[0]
+        else:
+            t2 = intensity[no_beam].index[-1]
+        return self.from_datetimes(t1, t2, keep_headers=True)
+
     def bg_from_ADT_trigger(self,
                             trigger_t,
                             dt_prior='0S',
@@ -227,7 +267,7 @@ class BLMDataFetcher:
         self._logger.info(f'Background timestamp t1: {t1}')
         self._logger.info(f'Background timestamp t2: {t2}')
 
-        return self.from_datetimes(t1, t2)
+        return self.from_datetimes(t1, t2, keep_headers=True)
 
     def iter_from_ADT(self, t1, t2,
                       look_forward='5S',
