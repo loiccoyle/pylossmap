@@ -1,7 +1,12 @@
 import pytimber
 import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
+try:
+    from tqdm.auto import tqdm
+except ImportError:
+    def tqdm(iterable, *args, **kwargs):
+        return iterable
+
 from pathlib import Path
 
 from . import timber_vars
