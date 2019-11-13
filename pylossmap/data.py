@@ -43,7 +43,8 @@ class BLMData:
         """Finds the max timestamp and chunk in which the max occured.
 
         Args:
-            BLM_max (list, optional): List of BLMs, defaults to the primary blms in IR 7.
+            BLM_max (list, optional): List of BLMs, defaults to the primary
+            blms in IR 7.
 
         Returns:
             DataFrame: DataFrame containing a tuple: (mode, datetime).

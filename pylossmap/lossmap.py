@@ -54,6 +54,8 @@ class LossMap:
         Args:
             LM_bg (LossMap): Background LossMap
         '''
+        if not isinstance(LM_bg, LossMap):
+            raise ValueError('"LM_bg" must be a LossMap instance.')
         self._background = LM_bg.copy()
 
     def get_background(self):
@@ -117,7 +119,7 @@ class LossMap:
         Returns:
             LossMap: LossMap instance of dispersion suppressors.
         """
-        return self.filter(rf'BLMQ[IE]\.(0[7-9]|10)[RL][37]')
+        return self.filter(rf'BLMQ[IE]\.(0[7-9]|10|11)[RL][37]')
 
     def IR(self, *IRs):
         """Gets the data of a given IR.
@@ -191,6 +193,14 @@ class LossMap:
         return self.filter(rf'B({beam})')
 
     def type(self, types):
+        '''Gets the BLM for the requested blm types.
+
+        Args:
+            types (list/str): string or list of the types of interest.
+
+        Returns:
+            LossMap: LossMap instance with the desired BLM types.
+        '''
         if not isinstance(types, list):
             types = [types]
 
@@ -232,6 +242,15 @@ class LossMap:
         return b/self.data['data'].sum()
 
     def cleaning(self, IR=7):
+        '''Cleaning efficiency ?
+        TODO : make sure this is correct.
+
+        Args:
+            IR (int): either IR 5 or 7.
+
+        Returns:
+            float: cleaning efficiency
+        '''
         return (self.IR(IR).DS().data['data'].max() /
                 self.IR(IR).TCP().data['data'].max())
 

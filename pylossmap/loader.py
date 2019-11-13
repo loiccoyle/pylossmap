@@ -98,7 +98,7 @@ class BLMDataFetcher:
 
         data = self._fetch_data_bm(keep_bm_df)
         if data is None:
-            raise ValueError('No data found.')
+            raise ValueError('No BLM data found.')
         BLM_data = BLMData(data, meta, **kwargs)
         return BLM_data
 
@@ -381,7 +381,7 @@ class BLMDataFetcher:
         Returns:
             list: list of columns containing the name of BLMs.
         """
-        # TODO: this order of these headers is slightly off...
+        # TODO: this order of these headers can be slightly off...
         headers = pd.DataFrame.from_dict(HEADERS, orient='index')
         headers.index = pd.to_datetime(headers.index).tz_localize('Europe/Zurich')
         headers = headers.sort_index()
