@@ -1,9 +1,9 @@
 import logging
+import itertools
 import numpy as np
 import pandas as pd
 
 from pathlib import Path
-from tqdm.auto import tqdm
 
 from .utils import DB
 from .metadata.headers import HEADERS
@@ -14,6 +14,7 @@ from .utils import row_from_time
 from .utils import beammode_to_df
 from .utils import fill_from_time
 from .utils import sanitize_t
+from .utils import PBar
 from .blm_type_map import name_to_type
 
 
@@ -21,7 +22,8 @@ class BLMDataFetcher:
     def __init__(self,
                  d_t='30M',
                  BLM_var='LHC.BLMI:LOSS_RS09',
-                 pbar=True):
+                 pbar=True,
+                 mute=False):
         """This class handles the fetching and loading of loss map data.
         It will query the timber/CALS db for the data and metadata, figure out
         and load the appropriate BLM type & coord mapping.
@@ -32,7 +34,12 @@ class BLMDataFetcher:
             format str, e.g. 30M, 1H, 10S, ...
             BLM_var (str, optional): Timber/CALS BLM measurement variable.
             pbar (bool, optional): controls whether to display progessbars.
+            mute (bool, optional): if True silences any progress prints.
         """
+        # progress bar settings
+        PBar.use_tqdm = pbar
+        PBar.mute = mute
+
         self.__header = None
         self.__coord_file = Path(__file__).parent / 'metadata' / 'blm_dcum.csv'
 
@@ -42,7 +49,6 @@ class BLMDataFetcher:
         self._logger = logging.getLogger(__name__)
         # header cache
         self._coord_t = self._get_coord_t()
-        self._pbar = pbar
         self._db = DB
 
     def clear_header(self):
@@ -78,10 +84,12 @@ class BLMDataFetcher:
             fill1 = fill_from_time(t1)
             fill2 = fill_from_time(t2)
         except ValueError:
+            # try again with bigger fuzzy_t
             fill1 = fill_from_time(t1, fuzzy_t='24H')
             fill2 = fill_from_time(t2, fuzzy_t='24H')
 
         if fill1 != fill2:
+            # TODO: implement this.
             raise ValueError('Fetch cannot cross fill boundaries... yet...')
         # TODO: investigate this ... why doesn't it find ...
         if fill1 is None:
@@ -148,7 +156,8 @@ class BLMDataFetcher:
                             dt_post='2S',
                             look_back='6H',
                             look_forward='5S',
-                            max_dt='30S'):
+                            min_bg_dt='20S',
+                            max_bg_dt='1min'):
         """Fetches the appropriate background data by looking at the triggers
         of the ADT and figuring out a correct time range, where no triggers
         occured.
@@ -162,7 +171,10 @@ class BLMDataFetcher:
             fetching adt trigger data.
             look_forward (str, optional): look forward from trigger_t when
             fetching adt trigger data.
-            max_dt (str, optional): max time interval of the background.
+            min_bg_dt (str, optional): minimum amount of time where no ADT
+            blowup triggers occur.
+            max_bg_dt= (str, optional): maximum amount of time where no ADT
+            blowup triggers occur, to limit of the amount of timber fetches.
 
         Returns:
             DataFrame: DataFrame containing the background signal.
@@ -172,45 +184,50 @@ class BLMDataFetcher:
         else:
             trigger_t = sanitize_t(trigger_t)
 
-        max_dt = pd.Timedelta(max_dt)
+        min_bg_dt = pd.Timedelta(min_bg_dt)
+        max_bg_dt = pd.Timedelta(max_bg_dt)
 
         joined = get_ADT(trigger_t - pd.Timedelta(look_back),
-                         trigger_t + pd.Timedelta(look_forward))
-        joined = joined.fillna(method='ffill')
+                         trigger_t + pd.Timedelta(look_forward),
+                         include=['trigger'])
         if not (joined == 1).any(axis=None):
             raise ValueError('No ADT triggers within time range.')
-        # remove consecutive adt on
-        joined = joined.fillna(method='ffill')
-        joined = joined[~np.logical_and(joined.shift() == joined,
-                                        joined == 1).any(axis=1)]
 
-        # find falling edges
-        pattern = [1, 0]
-        matched_t1 = joined.rolling(len(pattern)).apply(lambda x: all(np.equal(x, pattern)),
-                                                        raw=False)
-        matched_t1 = matched_t1.sum(axis=1).astype(bool)
-        # find rising edges
-        pattern = [0, 1]
-        matched_t2 = joined.rolling(len(pattern)).apply(lambda x: all(np.equal(x, pattern)),
-                                                        raw=False)
-        matched_t2 = matched_t2.sum(axis=1).astype(bool)
-        t2 = joined[matched_t2].index[-1] + pd.Timedelta(dt_prior)
-        try:
-            # if there is no adt turn off in the look back data. Fallback on
-            # max dt
-            t1 = (joined[np.logical_and(matched_t1, joined.index < t2)].index[-1] +
-                  pd.Timedelta(dt_post))
-        except IndexError:
-            t1 = t2 - max_dt
-        if t2 - t1 > max_dt:
-            t1 = t2 - max_dt
+        joined.fillna(method='ffill', inplace=True)
+        joined.dropna(axis=0, inplace=True)
 
-        if t1 > t2:
-            raise ValueError(f'Failed to fetch background: {t1} > {t2}')
-        else:
-            self._logger.info(f'Backgound t1: {t1}')
-            self._logger.info(f'Backgound t2: {t2}')
-            return self.from_datetimes(t1, t2)
+        # convert rising/falling edges to "square" functions
+        shifted = joined.shift(1)
+        shifted.index -= pd.Timedelta('1MS')
+        joined = pd.concat([joined, shifted])
+        joined.sort_values(by='timestamps', axis='index', inplace=True)
+
+        # find plateaus where the ADT was not triggered
+        joined_off = (joined == 0).all(axis=1)
+        joined = joined[::-1]
+        section = None
+        for i, g in joined.groupby([(joined_off != joined_off.shift()).cumsum()]):
+            if not g.any().any() and g.index[0] - g.index[-1] >= min_bg_dt:
+                section = g[::-1]
+                self._logger.info(f"Found background {i} plateaus back")
+                break
+
+        if section is None:
+            msg = ("Failed to find adequate ADT off plateau. "
+                   "Consider relaxing the 'min_bg_dt' constraint, "
+                   "or increasing the 'look_back' amount.")
+            raise ValueError(msg)
+
+        t1 = section.index[0] + pd.Timedelta(dt_post)
+        t2 = section.index[-1] - pd.Timedelta(dt_prior)
+
+        if t2 - t1 > max_bg_dt:
+            t1 = t2 - max_bg_dt
+
+        self._logger.info(f'Background timestamp t1: {t1}')
+        self._logger.info(f'Background timestamp t2: {t2}')
+
+        return self.from_datetimes(t1, t2)
 
     def iter_from_ADT(self, t1, t2,
                       look_forward='5S',
@@ -219,7 +236,9 @@ class BLMDataFetcher:
                       beams=[1, 2],
                       keep_headers=False,
                       yield_background=False,
-                      **kwargs):
+                      include=['trigger', 'amp', 'length', 'gate'],
+                      conditions={},
+                      ):
         """Generator of BLMData instances around ADT blowup triggers.
 
         Args:
@@ -235,38 +254,61 @@ class BLMDataFetcher:
             headers before fetching data.
             yield_background (bool, optional): yield both the BLM data nd the
             BLM background.
-            **kwargs: passed to BLMData __init__.
+            include (list, optional): which ADT information to fetch, must be a
+            key of utils.BEAM_META. Must contain at least the 'trigger' key to
+            be able to determine adt trigger timings.
+            conditions (dict, optional): dictionnay containing as key an
+            element of "include" and value a function returning a bool.
+            Example: conditions={'amp': lambda x: x > 0.6} will only return
+            data for ADT triggers with an excitation amplitude > 0.6. Mutliple
+            condition will be combined with AND logic.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
             trigger.
         """
+
+        # TODO: figure out if this conditions and include things are the best
+        #  way of doing this...
+        if not set(conditions.keys()) <= set(include):
+            raise ValueError('"condition" keys must be in "include" list.')
+
         if not keep_headers:
             self.clear_header()
         t1 = sanitize_t(t1)
         t2 = sanitize_t(t2)
 
-        joined = get_ADT(t1, t2, planes=planes, beams=beams)
+        joined = get_ADT(t1, t2, planes=planes, beams=beams, include=include)
         joined = joined.fillna(method='ffill')
+
         if not (joined == 1).any(axis=None):
             # TODO: cleanup the pbar thing ...
             raise ValueError('No ADT triggers within time range.')
-        for c in joined.columns:
-            triggers = joined[(joined[c] == 1)].index.tolist()
 
-            if self._pbar:
-                triggers = tqdm(triggers, desc=c)
+        for c in itertools.product(beams, planes):
+            # beam token
+            c = 'B' + ''.join(map(str, c))
+            # work on subset for current beam/plane
+            sub_joined = joined.filter(regex=f'.*{c}.*')
+            triggers = sub_joined[(sub_joined[f"ADT_{c}_trigger"] == 1)]
 
-            for t in triggers:
-                # set the BLM_max list to the subset for the chosen beam.
+            # apply condition filtering
+            for v, cond in conditions.items():
+                triggers = triggers[cond(triggers[f'ADT_{c}_{v}'])]
+
+            # create iterable
+            triggers_iter = triggers.iterrows()
+            triggers_iter = PBar(triggers_iter, desc=c, total=len(triggers))
+
+            for t, row in triggers_iter:
+                # add a few ease of life keys to the row.
+                row['ADT_beam'] = c[1]
+                row['ADT_plane'] = c[-1]
+                row['ADT_datetime'] = t
                 try:
-                    beam_plane_token = c.split('_')[-1]
-                    context = {'trigger_t': t,
-                               'trigger_beam': beam_plane_token[1],
-                               'trigger_plane': beam_plane_token[-1]}
                     BLM_data = self.from_datetimes(t - pd.Timedelta(look_back),
                                                    t + pd.Timedelta(look_forward),
-                                                   context=context,
+                                                   context=row,
                                                    keep_headers=True)
                     if yield_background:
                         try:
@@ -461,24 +503,22 @@ class BLMDataFetcher:
         data = []
 
         bm_iter = beam_modes.columns
-        if self._pbar and len(beam_modes.columns) > 1:
-            bm_iter = tqdm(beam_modes.columns, desc='Beam mode')
+        bm_iter = PBar(beam_modes.columns, desc='Beam mode')
 
         for mode in bm_iter:
-            if self._pbar and len(beam_modes.columns) > 1:
-                bm_iter.set_description(f'Beam mode {mode}')
+            # TODO: look into to tqdm set_description will be offset ?
+            bm_iter.set_description(f'Beam mode {mode}')
+
             t_chunks = list(self._date_chunk(beam_modes[mode]['startTime'],
                                              beam_modes[mode]['endTime'],
                                              pd.Timedelta(self.d_t)))
             d = []
 
             t_iter = zip(t_chunks, t_chunks[1:])
-            if self._pbar and len(t_chunks) - 1 > 1:
-                t_iter = tqdm(t_iter, total=len(t_chunks) - 1)
+            t_iter = PBar(t_iter, total=len(t_chunks) - 1)
 
             for t1, t2 in t_iter:
-                if self._pbar and len(t_chunks) - 1 > 1:
-                    t_iter.set_description(f'{t1.strftime("%m-%d %H:%M:%S")} ▶{t2.strftime("%m-%d %H:%M:%S")}')
+                t_iter.set_description(f'{t1.strftime("%m-%d %H:%M:%S")} ▶{t2.strftime("%m-%d %H:%M:%S")}')
                 d_i = self._fetch_data_t(t1, t2)
                 if d_i is not None:
                     d.append(d_i)

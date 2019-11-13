@@ -1,6 +1,7 @@
 import pytimber
 import numpy as np
 import pandas as pd
+from tqdm.auto import tqdm
 from pathlib import Path
 
 from . import timber_vars
@@ -16,6 +17,15 @@ BEAM_META = {'intensity':      (timber_vars.INTENSITY,   True),
              # 'amode':          (timber_vars.ACCEL_MODE,  False),
              # 'bmode':          (timber_vars.BEAM_MODE,   False),
              }
+
+ADT_META = {
+            'amp': timber_vars.ADT_AMP,
+            'mode': timber_vars.ADT_MODE,
+            'signal': timber_vars.ADT_SIGNAL,
+            'gate': timber_vars.ADT_GATE,
+            'length': timber_vars.ADT_LENGTH,
+            'trigger': timber_vars.ADT_TRIGGER,
+            }
 
 
 def uniquify(iterable):
@@ -56,7 +66,7 @@ def fill_from_time(t, fuzzy_t='12H'):
 
     fills = []
     i = 1
-    while fills == []:
+    while len(fills) < 2:
         fills = DB.getLHCFillsByTime(t - i*fuzzy_t,
                                      t + i*fuzzy_t)
         i += 1
@@ -125,7 +135,11 @@ def angle_convert(angle):
     return angle/(pi_2)
 
 
-def get_ADT(t1, t2, planes=['H', 'V'], beams=[1, 2]):
+def get_ADT(t1,
+            t2,
+            planes=['H', 'V'],
+            beams=[1, 2],
+            include=['amp', 'length', 'trigger']):
     """Gets ADT blowup trigger data for the requested time interval,
     beam and plane.
 
@@ -133,26 +147,31 @@ def get_ADT(t1, t2, planes=['H', 'V'], beams=[1, 2]):
         t1 (Datetime): start of interval.
         t2 (Datetime): end of interval.
         planes (list, optional): requested planes.
-        beams (list, optional): requested beams,
+        beams (list, optional): requested beams.
+        include (list, optional): list of ADT metrcis to fetch from timber.
+        Must be a key of ADT_META.
 
     Returns:
         DataFrame: DataFrame as index the timestamp and columns the
         triggers of the beams/planes.
     """
+    if not set(include) <= set(ADT_META.keys()):
+        raise ValueError(f'"include" keys must be in {ADT_META.key()}')
+
     ADT_vars = []
     columns = []
     for plane in planes:
         for beam in beams:
-            ADT_vars.append(timber_vars.ADT_TRIGGER.format(plane=plane,
-                                                           beam=beam))
-            columns.append(f'ADT_B{beam}{plane}')
+            for v in sorted(include):
+                ADT_vars.append(ADT_META[v].format(plane=plane, beam=beam))
+                columns.append(f'ADT_B{beam}{plane}_{v}')
 
     data = DB.get(ADT_vars,
                   t1,
                   t2)
     dfs = []
-    for (var, d), c in zip(data.items(), columns):
-        df = pd.DataFrame(np.vstack(d).T, columns=['timestamps', c])
+    for var, d in data.items():
+        df = pd.DataFrame(np.vstack(d).T, columns=['timestamps', var])
         df['timestamps'] = to_datetime(df['timestamps'].values)
         df = df.set_index('timestamps')
         dfs.append(df)
@@ -162,6 +181,7 @@ def get_ADT(t1, t2, planes=['H', 'V'], beams=[1, 2]):
         dfs[0] = dfs[0].join(i, how='outer')
 
     joined = dfs[0]
+    joined = joined.rename(mapper=dict(zip(ADT_vars, columns)), axis='columns')
     return joined
 
 
@@ -174,3 +194,62 @@ def sanitize_t(t):
         elif t.tz.zone != 'Europe/Zurich':
             t = t.tz_convert('Europe/Zurich')
     return t
+
+
+# Helper class to handle wether to display the progress bar
+class PBar:
+    use_tqdm = True
+    mute = False
+
+    def __init__(self, iterable, **kwargs):
+
+        self._tot = kwargs.get('total', None)
+        if self._tot is None:
+            try:
+                self._tot = len(iterable)
+            except AttributeError:
+                self._tot = 0
+
+        if self._tot > 1 and PBar.use_tqdm and not PBar.mute:
+            iterable = tqdm(iterable, **kwargs)
+
+        self._desc = kwargs.get('desc', '')
+        self._msg = []
+        self.iter = iterable
+
+    def set_description(self, string):
+        if not PBar.mute:
+            end = ''
+            if PBar.use_tqdm:
+                if self._tot > 1:
+                    self.iter.set_description(string)
+                else:
+                    end = '\n'
+                    self._desc = string
+            else:
+                self._desc = string
+            self._print_update(end=end)
+
+    def __iter__(self):
+        for n, i in enumerate(self.iter):
+            if not PBar.use_tqdm and not PBar.mute:
+                print('')
+                n += 1
+                msg = []
+                if self._desc:
+                    msg.append('{desc}')
+                if self._tot > 1:
+                    msg.append(f'{n} / {self._tot}')
+                self._msg = msg
+
+                if self._msg:
+                    print(': '.join(self._msg).format(desc=self._desc),
+                          end='')
+            yield i
+
+    def _print_update(self, end=''):
+        if '{desc}' not in self._msg:
+            self._msg = ['{desc}'] + self._msg
+        print('\r' + ': '.join(self._msg).format(desc=self._desc),
+              end=end,
+              flush=True)

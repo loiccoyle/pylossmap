@@ -7,6 +7,7 @@ from pathlib import Path
 from .utils import DB
 from .utils import BEAM_META
 from .utils import row_from_time
+from .utils import sanitize_t
 from .lossmap import LossMap
 from .plotting import plot_waterfall
 from .timber_vars import PRIMARY_BLM_7
@@ -16,7 +17,7 @@ class BLMData:
     def __init__(self,
                  data,
                  meta,
-                 BLM_filter=r'BLM[Q|B|A|T|2|E]I*',
+                 BLM_filter=r'BLM[Q|B|A|T|2|E]I.*',
                  context=None):
         """This class handles the parsing/preprocessing & plotting of the BLM data.
 
@@ -168,6 +169,8 @@ class BLMData:
                     datetime = row.name[1]
             except (IndexError, TypeError):
                 pass
+        else:
+            datetime = sanitize_t(datetime)
 
         if context is None:
             context = self.context
