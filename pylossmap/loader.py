@@ -194,10 +194,10 @@ class BLMDataFetcher:
                             trigger_t,
                             dt_prior='0S',
                             dt_post='2S',
-                            look_back='6H',
+                            look_back='2H',
                             look_forward='5S',
                             min_bg_dt='20S',
-                            max_bg_dt='1min'):
+                            max_bg_dt='10min'):
         """Fetches the appropriate background data by looking at the triggers
         of the ADT and figuring out a correct time range, where no triggers
         occured.
@@ -226,6 +226,8 @@ class BLMDataFetcher:
 
         min_bg_dt = pd.Timedelta(min_bg_dt)
         max_bg_dt = pd.Timedelta(max_bg_dt)
+        dt_prior = pd.Timedelta(dt_prior)
+        dt_post = pd.Timedelta(dt_post)
 
         joined = get_ADT(trigger_t - pd.Timedelta(look_back),
                          trigger_t + pd.Timedelta(look_forward),
@@ -238,28 +240,31 @@ class BLMDataFetcher:
 
         # convert rising/falling edges to "square" functions
         shifted = joined.shift(1)
+        # hacky way of making the 'edges' connect properly
         shifted.index -= pd.Timedelta('1MS')
         joined = pd.concat([joined, shifted])
         joined.sort_values(by='timestamps', axis='index', inplace=True)
-
+        # reverse joined to avoid useless iterations
+        joined = joined[::-1]
         # find plateaus where the ADT was not triggered
         joined_off = (joined == 0).all(axis=1)
-        joined = joined[::-1]
         section = None
         for i, g in joined.groupby([(joined_off != joined_off.shift()).cumsum()]):
-            if not g.any().any() and g.index[0] - g.index[-1] >= min_bg_dt:
+            data_range = g.index[0] - g.index[-1] - dt_prior - dt_post
+            if not g.any().any() and data_range >= min_bg_dt:
                 section = g[::-1]
                 self._logger.info(f"Found background {i} plateaus back")
                 break
 
         if section is None:
             msg = ("Failed to find adequate ADT off plateau. "
-                   "Consider relaxing the 'min_bg_dt' constraint, "
-                   "or increasing the 'look_back' amount.")
+                   "Consider relaxing the 'min_bg_dt', 'dt_post' "
+                   " and 'dt_prior' constraints, "
+                   "or maybe increasing the 'look_back' amount.")
             raise ValueError(msg)
 
-        t1 = section.index[0] + pd.Timedelta(dt_post)
-        t2 = section.index[-1] - pd.Timedelta(dt_prior)
+        t1 = section.index[0] + dt_post
+        t2 = section.index[-1] - dt_prior
 
         if t2 - t1 > max_bg_dt:
             t1 = t2 - max_bg_dt
