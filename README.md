@@ -47,7 +47,7 @@ This class handles the BLM data, the main methods are:
 
 * `plot`: creates a waterfall plot of the BLM data.
 * `iter_max`: iterates on index of the max values of the desired BLMS, defaults to the primary IR 7 BLMs.
-* `get_beam_meta`: fetches to get some additional information on the beam, i.e. intensity, number of bunches, fillign scheme, ..., for the current time range.
+* `get_beam_meta`: fetches to get some additional information on the beam, i.e. intensity, number of bunches, fillibg scheme, ..., for the current time range.
 
 You can access the raw data through the `data` attribute.
 
