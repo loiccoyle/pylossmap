@@ -8,4 +8,4 @@ import logging
 
 logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from .loader import BLMDataFetcher
+from .fetcher import BLMDataFetcher
