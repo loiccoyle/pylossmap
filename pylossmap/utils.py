@@ -55,6 +55,14 @@ def uniquify(iterable):
 
 
 def to_datetime(ts):
+    """Epoch time to datetime.
+
+    Args:
+        ts (int/float): Epoch or Unix time.
+
+    Returns:
+        pd.Timestamp: pd.Timestamp instance in Europe/Zurich timezone.
+    """
     return pd.to_datetime(ts,
                           unit='s',
                           utc=True).tz_convert('Europe/Zurich')
@@ -63,9 +71,17 @@ def to_datetime(ts):
 def fill_from_time(t, fuzzy_t='12H'):
     '''Gets the machine fill of a timestamp.
 
+    Args:
+        t (int/float/str): Epoch/Unix time or timestamp string.
+        fuzzy_t (str, optional): pd.Timedelta format string. Controls the
+        look back and look forward around "t" when looking for the fill.
+
     Returns:
         dict: dict containing the start/end time of the fill and
         with beam mode info.
+
+    Raises:
+        ValueError: if not fill is found.
     '''
     t = sanitize_t(t)
     fuzzy_t = pd.Timedelta(fuzzy_t)
