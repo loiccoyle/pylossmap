@@ -67,6 +67,7 @@ def fill_from_time(t, fuzzy_t='12H'):
         dict: dict containing the start/end time of the fill and
         with beam mode info.
     '''
+    t = sanitize_t(t)
     fuzzy_t = pd.Timedelta(fuzzy_t)
 
     fills = []
@@ -83,6 +84,7 @@ def fill_from_time(t, fuzzy_t='12H'):
 
 
 def beammode_from_time(t, fill=None, **kwargs):
+    t = sanitize_t(t)
     if fill is None:
         fill = fill_from_time(t, **kwargs)
 
@@ -110,6 +112,7 @@ def beammode_to_df(beam_mode, subset='all', unique_subset=False):
 
 
 def row_from_time(data, t, flatten=False, **kwargs):
+    t = sanitize_t(t)
     if flatten:
         index = data.index.get_level_values('timestamp')
     else:
@@ -133,6 +136,7 @@ def coll_meta(augment_b2=True):
     return df
 
 
+# TODO: this is broken for angles > pi
 def angle_convert(angle):
     pi_2 = np.pi/2
     if angle > pi_2:
@@ -162,6 +166,8 @@ def get_ADT(t1,
     """
     if not set(include) <= set(ADT_META.keys()):
         raise ValueError(f'"include" keys must be in {ADT_META.key()}')
+    t1 = sanitize_t(t1)
+    t2 = sanitize_t(t2)
 
     ADT_vars = []
     columns = []
@@ -193,7 +199,9 @@ def get_ADT(t1,
 def sanitize_t(t):
     if isinstance(t, (float, int)):
         t = to_datetime(t)
-    elif isinstance(t, pd.Timestamp):
+    elif isinstance(t, str):
+        t = pd.to_datetime(t)
+    if isinstance(t, pd.Timestamp):
         if t.tz is None:
             t = t.tz_localize('Europe/Zurich')
         elif t.tz.zone != 'Europe/Zurich':

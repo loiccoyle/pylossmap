@@ -1,3 +1,5 @@
+"""BLM name to type mapping.
+"""
 import re
 
 TYPE_MAP = {'coll': [r'_T[C|D]'],
@@ -29,6 +31,15 @@ TYPE_MAP = {'coll': [r'_T[C|D]'],
 
 
 def name_to_type(name, on_fail='other'):
+    """Converts find the type corresponding a given BLM name.
+
+    Args:
+        name (str): BLM name.
+        on_fail (str, optional): returned if not BLM type is found.
+
+    Returns:
+        str: the BLM type or "on_fail" if no BLM type is found.
+    """
 
     for k, regex_l in TYPE_MAP.items():
         res = [re.search(reg, name) for reg in regex_l]
