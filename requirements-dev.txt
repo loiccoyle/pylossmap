@@ -7,3 +7,4 @@ sphinx
 sphinx-autoapi
 sphinx-rtd-theme
 yapf
+m2r
