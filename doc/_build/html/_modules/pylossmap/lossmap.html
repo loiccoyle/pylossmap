@@ -1,0 +1,627 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pylossmap.lossmap &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/lossmap/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/loiccoyle/pylossmap">Source (Git)</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../pylossmap.html">pylossmap</a> &raquo;</li>
+        
+      <li>pylossmap.lossmap</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pylossmap.lossmap</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">DB</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">BEAM_META</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">coll_meta</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">angle_convert</span>
+<span class="kn">from</span> <span class="nn">.plotting</span> <span class="k">import</span> <span class="n">plot_loss_map</span>
+
+
+<div class="viewcode-block" id="LossMap"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap">[docs]</a><span class="k">class</span> <span class="nc">LossMap</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">data</span><span class="p">,</span>
+                 <span class="n">background</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">datetime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Handles the processing of the LossMap data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (DataFrame): Dataframe contraining BLM data, dcum, type.</span>
+<span class="sd">            background (DataFrame, optional): BLM background signal.</span>
+<span class="sd">            datetime (Datetime, optional): Datetime of the data.</span>
+<span class="sd">            context (optional): additional context information.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;dcum&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+
+        <span class="c1"># Dynamically add beam meta fetching methods</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">series</span><span class="p">)</span> <span class="ow">in</span> <span class="n">BEAM_META</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_check_datetime</span><span class="p">()</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">DB</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetime</span><span class="p">)[</span><span class="n">v</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">return_raw</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">out</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;get_</span><span class="si">{k}</span><span class="s1">&#39;</span>
+            <span class="n">fetch</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">fetch</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gets the </span><span class="si">{k}</span><span class="s2"> value from timber closest to the datetime&quot;</span>
+                             <span class="s2">&quot; attribute.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;Args:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">v (str, optional): Timber varibale.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">return_raw (bool, optional): if True, returns &quot;</span>
+                             <span class="s2">&quot;the timestamps along with the data.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;Returns:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">float or tuple: data point, if return_raw is &quot;</span>
+                             <span class="s2">&quot;True, returns tuple (timestamp, data).&quot;</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fetch</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LossMap.meta"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.meta">[docs]</a>    <span class="k">def</span> <span class="nf">meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_meta_cols</span><span class="p">]</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_sanitize_inp</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">prepare</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">check</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Input must be subset of </span><span class="si">{check}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">prepare</span><span class="p">):</span>
+            <span class="n">inp</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">prepare</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inp</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LossMap.set_background"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.set_background">[docs]</a>    <span class="k">def</span> <span class="nf">set_background</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">LM_bg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Links the provided background LossMap to this one.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            LM_bg (LossMap): Background LossMap</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the provided background is not a LossMap instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">LM_bg</span><span class="p">,</span> <span class="n">LossMap</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;&quot;LM_bg&quot; must be a LossMap instance.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">LM_bg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LossMap.get_background"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.get_background">[docs]</a>    <span class="k">def</span> <span class="nf">get_background</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the linked background LossMap</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: the linked LossMap instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetime</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;datetime&#39; attribute must be set to be able to &quot;</span>
+                             <span class="s2">&quot;fetch Timber data&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LossMap.copy"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a copy of the current instance.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: Copied LossMap instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.filter"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.filter">[docs]</a>    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Applies a regexp filter to the BLM names a returns a filters LossMap</span>
+<span class="sd">        instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reg (str): regexp string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the BLMs which matched the</span>
+<span class="sd">            regex string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="LossMap.normalize"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Normalizes the loss map data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wrt (str, optional): Either &#39;max&#39; or a BLM name.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance normalized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">wrt</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">wrt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">normalizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">wrt</span><span class="p">]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">normalizer</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="LossMap.clean_background"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.clean_background">[docs]</a>    <span class="k">def</span> <span class="nf">clean_background</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Substracts the background from the data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with cleaned data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;background not set, use self.set_background.&#39;</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ret</span><span class="o">.</span><span class="n">_background</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="LossMap.DS"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.DS">[docs]</a>    <span class="k">def</span> <span class="nf">DS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects the BLMs in the dispersion supperssor region.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the dispersion suppressors</span>
+<span class="sd">            BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rf</span><span class="s1">&#39;BLMQ[IE]\.(0[7-9]|10|11)[RL][37]&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.IR"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.IR">[docs]</a>    <span class="k">def</span> <span class="nf">IR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">IRs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filters the BLMs based on the IR(s).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *IRs (int): IR(s) of interests.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with the filtered IR(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">IR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_inp</span><span class="p">(</span><span class="n">IRs</span><span class="p">,</span>
+                                <span class="n">check</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">})</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rf</span><span class="s1">&#39;\.\d\d[LR](</span><span class="si">{IR}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.TCP"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.TCP">[docs]</a>    <span class="k">def</span> <span class="nf">TCP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">HVS</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects only the TCP BLMs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the TCP BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">HVS</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;BLMTI.*TCP\.&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;TCP\.&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.TCS"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.TCS">[docs]</a>    <span class="k">def</span> <span class="nf">TCS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects only the TCS BLMs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the TCS BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;TCS[GP][M]?\.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.TCL"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.TCL">[docs]</a>    <span class="k">def</span> <span class="nf">TCL</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects only the TCL BLMs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the TCS BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;TCL[A]?\.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.TCTP"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.TCTP">[docs]</a>    <span class="k">def</span> <span class="nf">TCTP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects only the TCTP BLMs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the TCTP BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;TCTP[HV]\.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.TCLI"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.TCLI">[docs]</a>    <span class="k">def</span> <span class="nf">TCLI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Selects only the TCLI BLMs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance containing the TCLI BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;TCLI[AB]\.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.side"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.side">[docs]</a>    <span class="k">def</span> <span class="nf">side</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RL</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filters the BLMs based on their side.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            RL (str): Either &quot;R&quot; or &quot;L&quot; or &quot;RL&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with the filtered BLMs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rf</span><span class="s1">&#39;\.\d\d[</span><span class="si">{RL}</span><span class="s1">][1-8]&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.cell"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.cell">[docs]</a>    <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">cells</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filters the BLMs based on their cell number(s).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *cells (int): cells of interest.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with the filtered cells.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">pad</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{x:02}</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_inp</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span>
+                                   <span class="n">prepare</span><span class="o">=</span><span class="n">pad</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rf</span><span class="s1">&#39;\.(</span><span class="si">{cells}</span><span class="s1">)[RL][1-8]&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.beam"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.beam">[docs]</a>    <span class="k">def</span> <span class="nf">beam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">beams</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filters the BLMs based on the beam(s).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *beam (int): Beams of interest, subset of {0,1,2}.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with the filtered beam(s).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">beam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitize_inp</span><span class="p">(</span><span class="n">beams</span><span class="p">,</span>
+                                  <span class="n">check</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">},</span>
+                                  <span class="n">prepare</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">rf</span><span class="s1">&#39;B(</span><span class="si">{beam}</span><span class="s1">)&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LossMap.type"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.type">[docs]</a>    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gets the BLM for the requested blm types.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            types (list/str): string or list of the types of interest.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LossMap: LossMap instance with the desired BLM types.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="n">types</span><span class="p">]</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">types</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+    <span class="c1"># def TCP_plane(self, beam=&#39;auto&#39;):</span>
+    <span class="c1">#     if beam not in [&#39;auto&#39;, 1, 2]:</span>
+    <span class="c1">#         raise ValueError(&#39;&quot;beam&quot; must be either &quot;auto&quot;, 1, or 2.&#39;)</span>
+
+    <span class="c1">#     if beam == &#39;auto&#39;:</span>
+    <span class="c1">#         ratios = [self.beam_ratio(beam) for beam in [1, 2]]</span>
+    <span class="c1">#         beam = [1, 2][ratios.index(max(ratios))]</span>
+    <span class="c1">#         self._logger.info(f&#39;Identifying plane for B{beam}.&#39;)</span>
+
+    <span class="c1">#     TCP_orient = {&#39;D6[RL]7&#39;: &#39;V&#39;,</span>
+    <span class="c1">#                   &#39;C6[RL]7&#39;: &#39;H&#39;,</span>
+    <span class="c1">#                   &#39;B6[RL]7&#39;: &#39;S&#39;}</span>
+
+    <span class="c1">#     LM_beam = self.beam(beam)</span>
+    <span class="c1">#     self._logger.info(LM_beam.IR(7).filter(r&#39;BLMTI.*TCP\.&#39;).data[&#39;data&#39;])</span>
+    <span class="c1">#     min_loss_blm = LM_beam.IR(7).filter(r&#39;BLMTI.*TCP\.&#39;).data[&#39;data&#39;].idxmin()</span>
+    <span class="c1">#     for k, v in TCP_orient.items():</span>
+    <span class="c1">#         if re.search(k, min_loss_blm):</span>
+    <span class="c1">#             return v</span>
+
+<div class="viewcode-block" id="LossMap.beam_ratio"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.beam_ratio">[docs]</a>    <span class="k">def</span> <span class="nf">beam_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beam</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Beam loss ratio.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            beam (int): requested beam.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: requested beam summed/total losses.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam</span><span class="p">(</span><span class="n">beam</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">b</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LossMap.cleaning"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.cleaning">[docs]</a>    <span class="k">def</span> <span class="nf">cleaning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IR</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Cleaning efficiency ?</span>
+<span class="sd">        TODO : make sure this is correct.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            IR (int): either IR 5 or 7.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: cleaning efficiency</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IR</span><span class="p">(</span><span class="n">IR</span><span class="p">)</span><span class="o">.</span><span class="n">DS</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">IR</span><span class="p">(</span><span class="n">IR</span><span class="p">)</span><span class="o">.</span><span class="n">TCP</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span></div>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="c1"># def __add__(self, other):</span>
+    <span class="c1">#     ret = self.copy()</span>
+    <span class="c1">#     return ret.data[&#39;data&#39;] + other.data[&#39;data&#39;]</span>
+
+    <span class="c1"># def __sub__(self, other):</span>
+    <span class="c1">#     ret = self.copy()</span>
+    <span class="c1">#     return ret.data[&#39;data&#39;] - other.data[&#39;data&#39;]</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bg_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bg_str</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">background:</span><span class="se">\n</span><span class="s2">{self._background.data.__repr__()}&quot;</span>
+
+        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;LossMap:</span><span class="se">\n\</span>
+<span class="se">\t</span><span class="s2">data:</span><span class="se">\n</span><span class="s2">{self.data.__repr__()}&quot;</span> <span class="o">+</span> <span class="n">bg_str</span>
+
+<div class="viewcode-block" id="LossMap.plot"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.LossMap.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">plot_loss_map</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                             <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span>
+                             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CollLossMap"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.CollLossMap">[docs]</a><span class="k">class</span> <span class="nc">CollLossMap</span><span class="p">(</span><span class="n">LossMap</span><span class="p">):</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="CollLossMap.from_loss_map"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.CollLossMap.from_loss_map">[docs]</a>    <span class="k">def</span> <span class="nf">from_loss_map</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">loss_map</span><span class="p">,</span> <span class="n">coll_df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Imports and converts a LossMap instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">loss_map</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                   <span class="n">background</span><span class="o">=</span><span class="n">loss_map</span><span class="o">.</span><span class="n">background</span><span class="p">,</span>
+                   <span class="n">datetime</span><span class="o">=</span><span class="n">loss_map</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span>
+                   <span class="n">context</span><span class="o">=</span><span class="n">loss_map</span><span class="o">.</span><span class="n">context</span><span class="p">,</span>
+                   <span class="n">coll_df</span><span class="o">=</span><span class="n">coll_df</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">coll_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Restricts BLMs to the collimator BLMs and adds adds the collimator</span>
+<span class="sd">        angle read from file, to the data attribute.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (DataFrame): Dataframe contraining BLM data, dcum, type.</span>
+<span class="sd">            coll_df (DataFrame, optional): DataFrame containing collimator</span>
+<span class="sd">            info.</span>
+<span class="sd">            **kwargs: passed to LossMap.__init__.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">coll_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">coll_df</span> <span class="o">=</span> <span class="n">coll_meta</span><span class="p">(</span><span class="n">augment_b2</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">blm</span> <span class="ow">in</span> <span class="n">coll_df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">blm</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;coll_angle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coll_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">blm</span><span class="p">,</span> <span class="s1">&#39;angle&#39;</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="s1">&#39;V&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{plane}</span><span class="s1">_weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;coll_angle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">angle_convert</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{plane}</span><span class="s1">_weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;coll_angle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">angle_convert</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;dcum&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;coll_angle&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;H_weight&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;V_weight&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CollLossMap.plane_w_avg"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.CollLossMap.plane_w_avg">[docs]</a>    <span class="k">def</span> <span class="nf">plane_w_avg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plane</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the weighted average losses for a given plane.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plane (str): &quot;H&quot; or &quot;V&quot;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: weighted loss average.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: if plane is not &quot;H&quot; or &quot;V&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plane</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;&quot;plane&quot; must be either &quot;H&quot; or &quot;V&quot;.&#39;</span><span class="p">)</span>
+
+        <span class="n">weighted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{plane}</span><span class="s1">_weight&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">weighted</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{plane}</span><span class="s1">_weight&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CollLossMap.plane"><a class="viewcode-back" href="../../autoapi/pylossmap/lossmap/index.html#pylossmap.lossmap.CollLossMap.plane">[docs]</a>    <span class="k">def</span> <span class="nf">plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plane</span><span class="p">):</span>
+        <span class="c1"># TODO: add SKEW?</span>
+        <span class="n">plane_angle</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">1.571</span><span class="p">,</span>
+                       <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">plane</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">plane_angle</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;&quot;plane&quot; must be either &quot;H&quot; or &quot;V&quot;.&#39;</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">ret</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;coll_angle&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">plane_angle</span><span class="p">[</span><span class="n">plane</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Loic Coyle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

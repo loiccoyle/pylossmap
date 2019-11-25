@@ -1,0 +1,386 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pylossmap.utils &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="pylossmap.timber_vars" href="../timber_vars/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lossmap/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap</span></code></a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../index.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../blm_type_map/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.blm_type_map</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../lossmap/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../plotting/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.plotting</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../timber_vars/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.timber_vars</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.utils</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/loiccoyle/pylossmap">Source (Git)</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Reference</a> &raquo;</li>
+        
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap</span></code></a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.utils</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/autoapi/pylossmap/utils/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylossmap.utils">
+<span id="pylossmap-utils"></span><h1><a class="reference internal" href="#module-pylossmap.utils" title="pylossmap.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.utils</span></code></a><a class="headerlink" href="#module-pylossmap.utils" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pylossmap.utils.tqdm">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">tqdm</code><span class="sig-paren">(</span><em class="sig-param">iterable</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#tqdm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.tqdm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="pylossmap.utils.DB">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">DB</code><a class="reference internal" href="../../../_modules/pylossmap/utils.html#DB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.DB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="pylossmap.utils.BEAM_META">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">BEAM_META</code><a class="reference internal" href="../../../_modules/pylossmap/utils.html#BEAM_META"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.BEAM_META" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="data">
+<dt id="pylossmap.utils.ADT_META">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">ADT_META</code><a class="reference internal" href="../../../_modules/pylossmap/utils.html#ADT_META"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.ADT_META" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.uniquify">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">uniquify</code><span class="sig-paren">(</span><em class="sig-param">iterable</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#uniquify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.uniquify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the entries in a list unique.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iterable</strong> (<em>Iterable</em>) – list to uniquify, duplicates will have
+“_{number}” added to them.</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>str</em> – uniquified element of iterable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.to_datetime">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">to_datetime</code><span class="sig-paren">(</span><em class="sig-param">ts</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#to_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.to_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Epoch time to datetime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ts</strong> (<em>int/float</em>) – Epoch or Unix time.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pd.Timestamp instance in Europe/Zurich timezone.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.Timestamp</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.fill_from_time">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">fill_from_time</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">fuzzy_t='12H'</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#fill_from_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.fill_from_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the machine fill of a timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>int/float/str</em>) – Epoch/Unix time or timestamp string.</p></li>
+<li><p><strong>fuzzy_t</strong> (<em>str</em><em>, </em><em>optional</em>) – pd.Timedelta format string. Controls the
+look back and look forward around “t” when
+looking for the fill.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict containing the start/end time of the fill and
+with beam mode info.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if not fill is found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.beammode_from_time">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">beammode_from_time</code><span class="sig-paren">(</span><em class="sig-param">t</em>, <em class="sig-param">fill=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#beammode_from_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.beammode_from_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.beammode_to_df">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">beammode_to_df</code><span class="sig-paren">(</span><em class="sig-param">beam_mode</em>, <em class="sig-param">subset='all'</em>, <em class="sig-param">unique_subset=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#beammode_to_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.beammode_to_df" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.row_from_time">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">row_from_time</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">t</em>, <em class="sig-param">flatten=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#row_from_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.row_from_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.coll_meta">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">coll_meta</code><span class="sig-paren">(</span><em class="sig-param">augment_b2=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#coll_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.coll_meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.angle_convert">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">angle_convert</code><span class="sig-paren">(</span><em class="sig-param">angle</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#angle_convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.angle_convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.get_ADT">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">get_ADT</code><span class="sig-paren">(</span><em class="sig-param">t1, t2, planes=['H', 'V'], beams=[1, 2], include=['amp', 'length', 'trigger']</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#get_ADT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.get_ADT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets ADT blowup trigger data for the requested time interval,
+beam and plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t1</strong> (<em>Datetime</em>) – start of interval.</p></li>
+<li><p><strong>t2</strong> (<em>Datetime</em>) – end of interval.</p></li>
+<li><p><strong>planes</strong> (<em>list</em><em>, </em><em>optional</em>) – requested planes.</p></li>
+<li><p><strong>beams</strong> (<em>list</em><em>, </em><em>optional</em>) – requested beams.</p></li>
+<li><p><strong>include</strong> (<em>list</em><em>, </em><em>optional</em>) – list of ADT metrcis to fetch from timber.</p></li>
+<li><p><strong>be a key of ADT_META.</strong> (<em>Must</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DataFrame as index the timestamp and columns the
+triggers of the beams/planes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.utils.sanitize_t">
+<code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">sanitize_t</code><span class="sig-paren">(</span><em class="sig-param">t</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#sanitize_t"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.sanitize_t" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="pylossmap.utils.PBar">
+<em class="property">class </em><code class="sig-prename descclassname">pylossmap.utils.</code><code class="sig-name descname">PBar</code><span class="sig-paren">(</span><em class="sig-param">iterable</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#PBar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.PBar" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="pylossmap.utils.PBar.use_tqdm">
+<code class="sig-name descname">use_tqdm</code><em class="property"> = True</em><a class="reference internal" href="../../../_modules/pylossmap/utils.html#PBar.use_tqdm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.PBar.use_tqdm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pylossmap.utils.PBar.mute">
+<code class="sig-name descname">mute</code><em class="property"> = False</em><a class="reference internal" href="../../../_modules/pylossmap/utils.html#PBar.mute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.PBar.mute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.utils.PBar.set_description">
+<code class="sig-name descname">set_description</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">string</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/utils.html#PBar.set_description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.utils.PBar.set_description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../timber_vars/index.html" class="btn btn-neutral float-left" title="pylossmap.timber_vars" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Loic Coyle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

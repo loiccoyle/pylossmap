@@ -1,0 +1,644 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pylossmap.lossmap &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="API Reference" href="../../index.html" />
+    <link rel="prev" title="pylossmap.data" href="../data/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pylossmap.lossmap.LossMap">LossMap</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.meta">meta</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.set_background">set_background</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.get_background">get_background</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.copy">copy</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.filter">filter</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.normalize">normalize</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.clean_background">clean_background</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.DS">DS</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.IR">IR</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.TCP">TCP</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.TCS">TCS</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.TCL">TCL</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.TCTP">TCTP</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.TCLI">TCLI</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.side">side</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.cell">cell</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.beam">beam</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.type">type</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.beam_ratio">beam_ratio</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.cleaning">cleaning</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.LossMap.plot">plot</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l3"><a class="reference internal" href="#pylossmap.lossmap.CollLossMap">CollLossMap</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.CollLossMap.from_loss_map">from_loss_map</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.CollLossMap.plane_w_avg">plane_w_avg</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.lossmap.CollLossMap.plane">plane</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/loiccoyle/pylossmap">Source (Git)</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/autoapi/pylossmap/lossmap/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylossmap.lossmap">
+<span id="pylossmap-lossmap"></span><h1><a class="reference internal" href="#module-pylossmap.lossmap" title="pylossmap.lossmap"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a><a class="headerlink" href="#module-pylossmap.lossmap" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pylossmap.lossmap.LossMap">
+<em class="property">class </em><code class="sig-prename descclassname">pylossmap.lossmap.</code><code class="sig-name descname">LossMap</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">background=None</em>, <em class="sig-param">datetime=None</em>, <em class="sig-param">context=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pylossmap.lossmap.LossMap.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.set_background">
+<code class="sig-name descname">set_background</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">LM_bg</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.set_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.set_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Links the provided background LossMap to this one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>LM_bg</strong> (<a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap"><em>LossMap</em></a>) – Background LossMap</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the provided background is not a LossMap instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.get_background">
+<code class="sig-name descname">get_background</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.get_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.get_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the linked background LossMap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the linked LossMap instance.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a copy of the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Copied LossMap instance.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.filter">
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">reg</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a regexp filter to the BLM names a returns a filters LossMap
+instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>reg</strong> (<em>str</em>) – regexp string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance containing the BLMs which matched the
+regex string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.normalize">
+<code class="sig-name descname">normalize</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">wrt='max'</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes the loss map data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wrt</strong> (<em>str</em><em>, </em><em>optional</em>) – Either ‘max’ or a BLM name.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance normalized.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.clean_background">
+<code class="sig-name descname">clean_background</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.clean_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.clean_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Substracts the background from the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance with cleaned data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.DS">
+<code class="sig-name descname">DS</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.DS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.DS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the BLMs in the dispersion supperssor region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the dispersion suppressors
+BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.IR">
+<code class="sig-name descname">IR</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">*IRs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.IR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.IR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the BLMs based on the IR(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*IRs</strong> (<em>int</em>) – IR(s) of interests.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance with the filtered IR(s).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.TCP">
+<code class="sig-name descname">TCP</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">HVS=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.TCP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.TCP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects only the TCP BLMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the TCP BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.TCS">
+<code class="sig-name descname">TCS</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.TCS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.TCS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects only the TCS BLMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the TCS BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.TCL">
+<code class="sig-name descname">TCL</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.TCL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.TCL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects only the TCL BLMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the TCS BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.TCTP">
+<code class="sig-name descname">TCTP</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.TCTP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.TCTP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects only the TCTP BLMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the TCTP BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.TCLI">
+<code class="sig-name descname">TCLI</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.TCLI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.TCLI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects only the TCLI BLMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LossMap instance containing the TCLI BLMs.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.side">
+<code class="sig-name descname">side</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">RL</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.side"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.side" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the BLMs based on their side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>RL</strong> (<em>str</em>) – Either “R” or “L” or “RL”.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance with the filtered BLMs.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.cell">
+<code class="sig-name descname">cell</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">*cells</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the BLMs based on their cell number(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*cells</strong> (<em>int</em>) – cells of interest.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance with the filtered cells.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.beam">
+<code class="sig-name descname">beam</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">*beams</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.beam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.beam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the BLMs based on the beam(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*beam</strong> (<em>int</em>) – Beams of interest, subset of {0,1,2}.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance with the filtered beam(s).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.type">
+<code class="sig-name descname">type</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">types</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the BLM for the requested blm types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>types</strong> (<em>list/str</em>) – string or list of the types of interest.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance with the desired BLM types.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.beam_ratio">
+<code class="sig-name descname">beam_ratio</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">beam</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.beam_ratio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.beam_ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Beam loss ratio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>beam</strong> (<em>int</em>) – requested beam.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested beam summed/total losses.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.cleaning">
+<code class="sig-name descname">cleaning</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">IR=7</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.cleaning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.cleaning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleaning efficiency ?
+TODO : make sure this is correct.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>IR</strong> (<em>int</em>) – either IR 5 or 7.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cleaning efficiency</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.LossMap.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">data=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#LossMap.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.LossMap.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pylossmap.lossmap.CollLossMap">
+<em class="property">class </em><code class="sig-prename descclassname">pylossmap.lossmap.</code><code class="sig-name descname">CollLossMap</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">coll_df=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#CollLossMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.CollLossMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">pylossmap.lossmap.LossMap</span></code></a></p>
+<dl class="method">
+<dt id="pylossmap.lossmap.CollLossMap.from_loss_map">
+<em class="property">classmethod </em><code class="sig-name descname">from_loss_map</code><span class="sig-paren">(</span><em class="sig-param">cls</em>, <em class="sig-param">loss_map</em>, <em class="sig-param">coll_df=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#CollLossMap.from_loss_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.CollLossMap.from_loss_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports and converts a LossMap instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.CollLossMap.plane_w_avg">
+<code class="sig-name descname">plane_w_avg</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">plane</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#CollLossMap.plane_w_avg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.CollLossMap.plane_w_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the weighted average losses for a given plane.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plane</strong> (<em>str</em>) – “H” or “V”</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>weighted loss average.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – if plane is not “H” or “V”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.lossmap.CollLossMap.plane">
+<code class="sig-name descname">plane</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">plane</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/lossmap.html#CollLossMap.plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.lossmap.CollLossMap.plane" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../../index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../data/index.html" class="btn btn-neutral float-left" title="pylossmap.data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Loic Coyle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

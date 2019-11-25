@@ -1,0 +1,15 @@
+:mod:`pylossmap.metadata`
+=========================
+
+.. py:module:: pylossmap.metadata
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   headers/index.rst
+
+

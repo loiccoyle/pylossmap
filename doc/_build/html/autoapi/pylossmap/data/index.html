@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pylossmap.data &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="pylossmap.lossmap" href="../lossmap/index.html" />
+    <link rel="prev" title="pylossmap.fetcher" href="../fetcher/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pylossmap.data.BLMData">BLMData</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.find_max">find_max</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.iter_max">iter_max</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.get_beam_meta">get_beam_meta</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.loss_map">loss_map</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.save">save</a></li>
+</ul>
+<ul>
+<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.plot">plot</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l3"><a class="reference internal" href="#pylossmap.data.load">load</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../lossmap/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.lossmap</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/loiccoyle/pylossmap">Source (Git)</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/autoapi/pylossmap/data/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pylossmap.data">
+<span id="pylossmap-data"></span><h1><a class="reference internal" href="#module-pylossmap.data" title="pylossmap.data"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a><a class="headerlink" href="#module-pylossmap.data" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pylossmap.data.BLMData">
+<em class="property">class </em><code class="sig-prename descclassname">pylossmap.data.</code><code class="sig-name descname">BLMData</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">meta</em>, <em class="sig-param">BLM_filter='BLM[Q|B|A|T|2|E]I.*'</em>, <em class="sig-param">context=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pylossmap.data.BLMData.find_max">
+<code class="sig-name descname">find_max</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">BLM_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.find_max"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.find_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the max timestamp and chunk in which the max occured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>BLM_max</strong> (<em>list</em><em>, </em><em>optional</em>) – List of BLMs, defaults to the primary
+blms in IR 7.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DataFrame containing a tuple: (mode, datetime).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.data.BLMData.iter_max">
+<code class="sig-name descname">iter_max</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">BLM_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.iter_max"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.iter_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an generator of ((mode, datetime), BLM_max), where mode and
+datetime correspond to the max value of BLM_max.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>BLM_max</strong> (<em>list</em><em>, </em><em>optional</em>) – List of BLMs, defaults to the primary
+blms in IR 7.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>((mode, datetime), BLM_max)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>generator</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>BLM_data = BLMData(data, meta)
+for idx, blms in BLM_date.iter_max():</p>
+<blockquote>
+<div><p>row = BLM_data.loc[idx]</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.data.BLMData.get_beam_meta">
+<code class="sig-name descname">get_beam_meta</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">key</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.get_beam_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.get_beam_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetched beam meta data from timber.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – a key of utils.BEAM_META.</p></li>
+<li><p><strong>**kwargs</strong> – beam/plane if the requested timber variable requires it.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Fetched timber data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – if timber variable requires additional kwargs.</p></li>
+<li><p><strong>ValueError</strong> – if key is not in utils.BEAM_META.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.data.BLMData.loss_map">
+<code class="sig-name descname">loss_map</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">datetime=None</em>, <em class="sig-param">row=None</em>, <em class="sig-param">context=None</em>, <em class="sig-param">background=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.loss_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.loss_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a LossMap instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datetime</strong> (<em>Datetime</em><em>, </em><em>optional</em>) – If provided, is used to find a desired row in the data which corresponds to datetime.</p></li>
+<li><p><strong>row</strong> (<em>Series</em><em>, </em><em>optional</em>) – Row of data for which to create the LossMap
+instance.</p></li>
+<li><p><strong>context</strong> (<em>optional</em>) – if None, will use self.context.</p></li>
+<li><p><strong>background</strong> (<em>Series</em><em>, </em><em>optional</em>) – if provided will create a LossMap instance for the background and will link it to the data’s LossMap.</p></li>
+<li><p><strong>**kwargs</strong> – passed to LossMap.__init__.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMap instance of the desired data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="../lossmap/index.html#pylossmap.lossmap.LossMap" title="pylossmap.lossmap.LossMap">LossMap</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If neither t nor row is provided.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.data.BLMData.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">file_path</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the DataFrames to hdf file/keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str/path</em>) – Path to hdf file in which to save the
+DataFrames.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>OSError</strong> – If file already exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylossmap.data.BLMData.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">data=None</em>, <em class="sig-param">title=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a waterfall plot of the data. Note, will produce multiple
+figures if data contains a mode index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>DataFrame</em><em>, </em><em>optional</em>) – DataFrame containing the BLM data.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – figure title, ‘{mode}’ gets replaced with
+the beam mode.</p></li>
+<li><p><strong>**kwargs</strong> – passed to plotting.plot_waterfall</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pylossmap.data.load">
+<code class="sig-prename descclassname">pylossmap.data.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">file_path</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the data from a hdf file and create a LossMapData instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str/path</em>) – Path to hdf file from which to load the data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>LossMapData instance with the loaded data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>LossMapData</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>FileNotFoundError</strong> – If file does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../lossmap/index.html" class="btn btn-neutral float-right" title="pylossmap.lossmap" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../fetcher/index.html" class="btn btn-neutral float-left" title="pylossmap.fetcher" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Loic Coyle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

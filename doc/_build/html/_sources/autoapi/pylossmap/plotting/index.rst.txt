@@ -1,0 +1,56 @@
+:mod:`pylossmap.plotting`
+=========================
+
+.. py:module:: pylossmap.plotting
+
+
+Module Contents
+---------------
+
+
+.. function:: plot_loss_map(data, meta, types=['cold', 'warm', 'coll', 'xrp'], types_to_colour=None, xtick_labels=None, figsize=(20, 10), title=None, x_lim=None, y_lim=[1e-07, 10.0], **kwargs)
+
+   Plots a loss map from data.
+
+   :param data: Series with as index the blms and value the
+                measurement [Gy/s]
+   :type data: Series
+   :param meta: BLM metadata.
+   :type meta: DataFrame
+   :param xtick_labels: list of BLM names to add to the x
+                        axis.
+   :type xtick_labels: list, optional
+   :param figsize: figure size in inches.
+   :type figsize: tuple, optional
+   :param title: figure title.
+   :type title: str, optional
+   :param x_lim: x axis limits.
+   :type x_lim: tuple, optional
+   :param y_lim: y axis limits.
+   :type y_lim: tuple, optional
+   :param \*\*kwargs: forwarded to plt.bar.
+
+   :returns: figure and ax objects of the figure.
+   :rtype: Figure, Ax
+
+
+.. function:: plot_waterfall(data, meta, title=None, figsize=(20, 10), min_max_quantile=0.85)
+
+   Plots a water plot of the data.
+
+   :param data: DataFrame containing BLM data.
+   :type data: DataFrame
+   :param meta: BLM metadata.
+   :type meta: DataFrame
+   :param title: figure title.
+   :type title: str, optional
+   :param figsize: figure size in inches.
+   :type figsize: tuple, optional
+   :param min_max_quantile: colormap min/max
+   :type min_max_quantile: tuple/float, optional
+   :param threshold.:
+
+   :returns: figure and ax objects of the plot.
+   :rtype: Figure, Ax
+
+
