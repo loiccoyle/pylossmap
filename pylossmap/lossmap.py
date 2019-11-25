@@ -2,6 +2,8 @@ import copy
 import logging
 import pandas as pd
 
+from functools import partial
+
 from .utils import DB
 from .utils import BEAM_META
 from .utils import coll_meta
@@ -35,29 +37,42 @@ class LossMap:
         # Dynamically add beam meta fetching methods
         for k, (v, series) in BEAM_META.items():
 
-            def fetch(v=v, return_raw=False, **kwargs):
-                self._check_datetime()
-                try:
-                    v = v.format(**kwargs)
-                except KeyError as e:
-                    raise KeyError(f"Provide {e} kwarg.")
-                out = DB.get(v, self.datetime)[v]
-                if not return_raw:
-                    out = out[1][0]
-                return out
-            name = f'get_{k}'
-            fetch.__name__ = name
-            fetch.__doc__ = (f"Gets the {k} value from timber closest to the datetime"
-                             " attribute.\n"
-                             "Args:\n"
-                             "\tv (str, optional): Timber variable.\n"
-                             "\treturn_raw (bool, optional): if True, returns "
-                             "the timestamps along with the data.\n"
-                             "\n"
-                             "Returns:\n"
-                             "\tfloat or tuple: data point, if return_raw is "
-                             "True, returns tuple (timestamp, data).")
-            setattr(self, name, fetch)
+            meth = partial(self.fetch_var, v)
+            name = f'fetch_{k}'
+            meth.__name__ = name
+            meth.__doc__ = (f"Gets the {k} value from timber closest to the "
+                            "datetime attribute.\n"
+                            "Args:\n"
+                            "\tv (str, optional): Timber variable.\n"
+                            "\treturn_raw (bool, optional): if True, returns "
+                            "the timestamps along with the data.\n"
+                            "\n"
+                            "Returns:\n"
+                            "\tfloat or tuple: data point, if return_raw is "
+                            "True, returns tuple (timestamp, data).")
+            setattr(self, name, meth)
+
+    def fetch_var(self, v, return_raw=False, **kwargs):
+        """Gets the {k} value from timber closest to the datetime attribute.
+
+        Args:
+            v (str, optional): Timber variable.
+            return_raw (bool, optional): if True, returns the timestamps along
+                                         with the data.
+
+        Returns:
+            float or tuple: data point, if return_raw is True, returns tuple
+            (timestamp, data).
+        """
+        self._check_datetime()
+        try:
+            v = v.format(**kwargs)
+        except KeyError as e:
+            raise KeyError(f"Provide {e} kwarg.")
+        out = DB.get(v, self.datetime)[v]
+        if not return_raw:
+            out = out[1][0]
+        return out
 
     @property
     def meta(self):

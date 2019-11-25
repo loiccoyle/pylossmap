@@ -308,9 +308,9 @@ class BLMDataFetcher:
             yield_background (bool, optional): yield both the BLM data nd the
                                                BLM background.
             include (list, optional): which ADT information to fetch, must be a
-                                      key of utils.BEAM_META. Must contain at
-                                      least the 'trigger' key to be able to
-                                      determine adt trigger timings.
+                                      key of utils.BEAM_META. Will be
+                                      passed on the the returned BLMData's
+                                      context attribute.
             conditions (dict, optional): dictionnay containing as key an
                                          element of "include" and value a
                                          function returning a bool.
@@ -328,6 +328,8 @@ AND logic.
         #  way of doing this...
         if not set(conditions.keys()) <= set(include):
             raise ValueError('"condition" keys must be in "include" list.')
+        if 'trigger' not in include:
+            include.append('trigger')
 
         if not keep_headers:
             self.clear_header()

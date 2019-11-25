@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from pathlib import Path
+from functools import partial
 
 from .utils import DB
 from .utils import BEAM_META
@@ -42,43 +43,56 @@ interest.
 
         # Dynamically add beam meta fetching methods
         for k, (v, series) in BEAM_META.items():
+            meth = partial(self.fetch_var, v, timeseries=series)
+            name = f'fetch_{k}'
+            meth.__name__ = name
+            meth.__doc__ = (f"Gets {k} data from timber for the current "
+                            "time range.\n"
+                            "Args:\n"
+                            "\tv (str, optional): Timber variable.\n"
+                            "\ttimeseries (bool, optional): whether Timber "
+                            "variable returns a timeseries.\n"
+                            "\treturn_raw (bool, optional): if True, returns "
+                            "the timestamps along with the data.\n"
+                            "\n"
+                            "Returns:\n"
+                            "\tDataFrame or tuple: Dataframe with timestamp"
+                            "and data if return_raw is True, a tuple "
+                            "containing timestamp and data arrays.")
+            setattr(self, name, meth)
 
-            def fetch(v=v, timeseries=series, return_raw=False, **kwargs):
-                t1 = self.data.index.get_level_values('timestamp')[0]
-                t2 = None
-                # key, timeseries = BEAM_META[v]
-                if timeseries:
-                    t2 = self.data.index.get_level_values('timestamp')[-1]
-                try:
-                    v = v.format(**kwargs)
-                except KeyError as e:
-                    raise KeyError(f"Provide {e} kwarg.")
-                out = DB.get(v, t1, t2)[v]
-                if not return_raw:
-                    out = pd.DataFrame(np.vstack(out).T, columns=['timestamp', v])
-                    out['timestamp'] = pd.to_datetime(out['timestamp'],
-                                                      unit='s',
-                                                      utc=True).dt\
-                        .tz_convert('Europe/Zurich')
-                    out = out.set_index('timestamp')
-                return out
+    def fetch_var(self, v, timeseries=True, return_raw=False, **kwargs):
+        """Gets provided timber variable data from timber for the current time range.
 
-            name = f'get_{k}'
-            fetch.__name__ = name
-            fetch.__doc__ = (f"Gets the {k} value from timber closest to the datetime"
-                             " attribute.\n"
-                             "Args:\n"
-                             "\tv (str, optional): Timber variable.\n"
-                             "\ttimeseries (bool, optional): whether Timber "
-                             "variable returns a timeseries.\n"
-                             "\treturn_raw (bool, optional): if True, returns "
-                             "the timestamps along with the data.\n"
-                             "\n"
-                             "Returns:\n"
-                             "\tDataFrame or tuple: Dataframe with timestamp"
-                             "and data if return_raw is True, a tuple "
-                             "containing timestamp and data arrays.")
-            setattr(self, name, fetch)
+        Args:
+            v (str, optional): Timber variable.
+            timeseries (bool, optional): whether Timber variable returns a
+                                         timeseries.
+            return_raw (bool, optional): if True, returns the timestamps along
+                                          with the data.
+        Returns:
+            DataFrame or tuple: Dataframe with timestamp and data. If
+                                return_raw is True, a tuple containing
+                                timestamp and data arrays.
+        """
+        t1 = self.data.index.get_level_values('timestamp')[0]
+        t2 = None
+        # key, timeseries = BEAM_META[v]
+        if timeseries:
+            t2 = self.data.index.get_level_values('timestamp')[-1]
+        try:
+            v = v.format(**kwargs)
+        except KeyError as e:
+            raise KeyError(f"Provide {e} kwarg.")
+        out = DB.get(v, t1, t2)[v]
+        if not return_raw:
+            out = pd.DataFrame(np.vstack(out).T, columns=['timestamp', v])
+            out['timestamp'] = pd.to_datetime(out['timestamp'],
+                                              unit='s',
+                                              utc=True).dt\
+                .tz_convert('Europe/Zurich')
+            out = out.set_index('timestamp')
+        return out
 
     def find_max(self, BLM_max=None):
         """Finds the max timestamp and chunk in which the max occured.
