@@ -22,11 +22,11 @@ class BLMData:
         """This class handles the parsing/preprocessing & plotting of the BLM data.
 
         Args:
-            data (DataFrame): MultiIndex DataFrame containing the BLM
-            measurements, for the various beam modes & query chunks.
-            meta (DataFrame): DataFrame containing the BLM metadata.
-            BLM_filter (list/str, optional): regex str of list of regex strs,
-            BLMs of interest.
+            data (DataFrame): MultiIndex DataFrame containing the BLM \
+measurements, for the various beam modes & query chunks.
+            meta (DataFrame): DataFrame containing the BLM metadata. \
+BLM_filter (list/str, optional): regex str of list of regex strs, BLMs of \
+interest.
             context (optional): additional info.
         """
         self._logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class BLMData:
 
         Args:
             BLM_max (list, optional): List of BLMs, defaults to the primary
-            blms in IR 7.
+                                      blms in IR 7.
 
         Returns:
             DataFrame: DataFrame containing a tuple: (mode, datetime).
@@ -58,20 +58,24 @@ class BLMData:
         # only keep timestamp
         return maxes.applymap(lambda x: x[1])
 
-    def iter_max(self, **kwargs):
+    def iter_max(self, BLM_max=None):
         """Creates an generator of ((mode, datetime), BLM_max), where mode and
         datetime correspond to the max value of BLM_max.
 
-        Example:
-            BLM_data = BLMData(data, meta)
-            for idx, blms in BLM_date.iter_max():
-               row = BLM_data.loc[idx]
+        Args:
+            BLM_max (list, optional): List of BLMs, defaults to the primary
+                                      blms in IR 7.
 
         Returns:
             generator: ((mode, datetime), BLM_max)
+
+        Examples:
+            BLM_data = BLMData(data, meta)
+            for idx, blms in BLM_date.iter_max():
+               row = BLM_data.loc[idx]
         """
         iterable = []
-        for mode, row in self.find_max(**kwargs).iterrows():
+        for mode, row in self.find_max(BLM_max).iterrows():
             iterable.extend([[mode, t, blm] for blm, t in row.items()])
         maxes = pd.DataFrame(iterable, columns=['mode', 'timestamp', 'blm'])\
             .groupby(['mode', 'timestamp'], sort=False)
@@ -86,7 +90,7 @@ class BLMData:
 
         Returns:
             DataFrame: DataFrame with blms as index and "dcum" & "type" as
-            columns.
+                       columns.
         """
         blms = set(self.data.columns)
         with_meta = list(blms & set(meta.index.tolist()))
@@ -141,13 +145,13 @@ class BLMData:
         """Creates a LossMap instance.
 
         Args:
-            datetime (Datetime, optional): If provided, is used to find a
-            desired row in the data which corresponds to datetime.
+            datetime (Datetime, optional): If provided, is used to find a \
+desired row in the data which corresponds to datetime.
             row (Series, optional): Row of data for which to create the LossMap
-            instance.
+                                    instance.
             context (optional): if None, will use self.context.
-            background (Series, optional): if provided will create a LossMap
-            instance for the background and will link it to the data's LossMap.
+            background (Series, optional): if provided will create a LossMap \
+instance for the background and will link it to the data's LossMap.
             **kwargs: passed to LossMap.__init__.
 
         Returns:
@@ -191,7 +195,7 @@ class BLMData:
 
         Args:
             file_path (str/path): Path to hdf file in which to save the
-            DataFrames.
+                                  DataFrames.
 
         Raises:
             OSError: If file already exists.
@@ -210,7 +214,7 @@ class BLMData:
         Args:
             data (DataFrame, optional): DataFrame containing the BLM data.
             title (str, optional): figure title, '{mode}' gets replaced with
-            the beam mode.
+                                   the beam mode.
             **kwargs: passed to plotting.plot_waterfall
         """
         # TODO: fix this format mode thing

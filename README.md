@@ -1,4 +1,4 @@
-# pylossmaps
+# pylossmap
 
 This library facilitates the fetching and handling of the LHC's BLM measurements.
 
@@ -18,7 +18,7 @@ Optional:
 
 # Usage
 
-**See examples in the `notebooks` folder.**
+**See examples in the** `notebooks` **folder.**
 
 There are 3 main classes:
 
@@ -31,7 +31,7 @@ If has 2 main methods of fetching data:
 * `from_datetime`: which takes 2 datetime objects or epoch/unix time numbers.
 * `from_fill`: which takes a fill number along with the requeted beam modes.
 
-It also has a helper function to return data surrounding triggers of the ADT blowup:
+It also has a helper method to return data surrounding triggers of the ADT blowup:
 
 * `iter_from_adt`: iteratively yield BLMData instances of data surronding the trigger of the ADT within the requested time range.
 

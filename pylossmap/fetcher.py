@@ -65,7 +65,7 @@ class BLMDataFetcher:
             t1 (Datetime): interval start.
             t2 (Datetime): interval end.
             keep_headers (optional, bool): Controls whether to clear the
-            headers before fetching data.
+                                           headers before fetching data.
             **kwargs: pass to BLMData __init__.
 
         Returns:
@@ -73,7 +73,7 @@ class BLMDataFetcher:
 
         Raises:
             ValueError: if time interval crosses fill boundaries, or no
-            data is found.
+                        data is found.
         """
         if not keep_headers:
             self.clear_header()
@@ -123,13 +123,18 @@ class BLMDataFetcher:
         Args:
             fill_number (int): fill of interest.
             beam_modes (str/list, optional): either 'all' to get data for
-            all beam modes, or a list of beam modes to only request a subset.
+                                             all beam modes, or a list of beam
+                                             modes to only request a subset.
             unique_beam_modes (bool, optional): If a fill contains multiple of
-            the same beam mode, they will be uniquified, INJPHYS, INJPHYS -->
-            INJPHYS, INJPHYS_2. Setting unique_beam_modes to True and providing
-            INJPHYS_2 in beam_modes will select the second beam mode.
+                                                the same beam mode, they will
+                                                be uniquified, INJPHYS, INJPHYS
+                                                --> INJPHYS, INJPHYS_2. Setting
+                                                unique_beam_modes to True and
+                                                providing INJPHYS_2 in
+                                                beam_modes will select the
+                                                second beam mode.
             keep_headers (optional, bool): Controls whether to clear the
-            headers before fetching data.
+                                           headers before fetching data.
             **kwargs: passed to BLMData __init__.
 
         Returns:
@@ -204,17 +209,19 @@ class BLMDataFetcher:
 
         Args:
             trigger_t (Datetime, optional): Time of ADT trigger, if None, will
-            take the timestamp of the first value.
+                                            take the timestamp of the first
+                                            value.
             dt_prior (str, optional): time delta prior to adt turn on.
             dt_post (str, optional): time delta post previous adt turn off.
             look_back (str, optional): look back from trigger_t when
-            fetching adt trigger data.
+                                       fetching adt trigger data.
             look_forward (str, optional): look forward from trigger_t when
-            fetching adt trigger data.
+                                          fetching adt trigger data.
             min_bg_dt (str, optional): minimum amount of time where no ADT
-            blowup triggers occur.
+                                       blowup triggers occur.
             max_bg_dt= (str, optional): maximum amount of time where no ADT
-            blowup triggers occur, to limit of the amount of timber fetches.
+                                        blowup triggers occur, to limit of the
+                                        amount of timber fetches.
 
         Returns:
             DataFrame: DataFrame containing the background signal.
@@ -290,23 +297,27 @@ class BLMDataFetcher:
             t1 (Datetime): interval start.
             t2 (Datetime): interval end.
             look_forward (str, optional): Timedelta format string, controls
-            how much data after ADT trigger to fetch.
+                                          how much data after ADT trigger to
+                                          fetch.
             look_back (str, optional): Timedelta format string, controls how
-            much data before ADT trigger to fetch.
+                                       much data before ADT trigger to fetch.
             planes (list, optional): ADT trigger planes of interest.
             beams (list, optional): ADT trigger beams of itnerest.
             keep_headers (bool, optional): Controls whether to clear the
-            headers before fetching data.
+                                           headers before fetching data.
             yield_background (bool, optional): yield both the BLM data nd the
-            BLM background.
+                                               BLM background.
             include (list, optional): which ADT information to fetch, must be a
-            key of utils.BEAM_META. Must contain at least the 'trigger' key to
-            be able to determine adt trigger timings.
+                                      key of utils.BEAM_META. Must contain at
+                                      least the 'trigger' key to be able to
+                                      determine adt trigger timings.
             conditions (dict, optional): dictionnay containing as key an
-            element of "include" and value a function returning a bool.
-            Example: conditions={'amp': lambda x: x > 0.6} will only return
-            data for ADT triggers with an excitation amplitude > 0.6. Mutliple
-            condition will be combined with AND logic.
+                                         element of "include" and value a
+                                         function returning a bool.
+                                         Example: \
+conditions={'amp': lambda x: x > 0.6} will only return data for ADT triggers \
+with an excitation amplitude > 0.6. Mutliple condition will be combined with \
+AND logic.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
@@ -378,7 +389,8 @@ class BLMDataFetcher:
 
         Returns:
             tuple (dict, DataFrame): dict containing Datetime of fill start
-            time & fill end ts, DataFrame of beam mode start & end.
+                                     time & fill end ts, DataFrame of beam mode
+                                     start & end.
         '''
         bm_t = self._db.getLHCFillData(fill_number=fill_number)
         # put fill start and end into dict
@@ -395,7 +407,7 @@ class BLMDataFetcher:
 
         Returns:
             DataFrame: DataFrame with as index the timestamp and one column,
-            the file path.
+                       the file path.
         """
         header_coords = pd.read_csv(self.__coord_file,
                                     index_col=[0, 1],
@@ -498,9 +510,8 @@ class BLMDataFetcher:
         Args:
             t1 (Datetime): Start time of the data fetch.
             t2 (Datetime): End time of the data fetch.
-            header_fetchers (list, optional): list of callable which return a
-            list. Each is tried in sequence, until a compatible header is
-            found.
+            header_fetchers (list, optional): list of callable which return a \
+list. Each is tried in sequence, until a compatible header is found.
 
         Returns:
             DataFrame: DataFrame containing the BLM data.
@@ -538,11 +549,12 @@ class BLMDataFetcher:
 
         Args:
             beam_modes (DataFrame): DataFrame containing beam modes as
-            columns and "startTime", "endTime" as index.
+                                    columns and "startTime", "endTime" as
+                                    index.
 
         Returns:
             DataFrame: MultiIndex DataFrame containing the BLM data for the
-            beam modes.
+                       beam modes.
         """
         # TODO: cleanup the pbar thing ...
         data = []

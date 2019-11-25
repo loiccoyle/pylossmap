@@ -38,7 +38,7 @@ def uniquify(iterable):
 
     Args:
         iterable (Iterable): list to uniquify, duplicates will have
-        "_{number}" added to them.
+                             "_{number}" added to them.
 
     Yields:
         str: uniquified element of iterable
@@ -74,7 +74,8 @@ def fill_from_time(t, fuzzy_t='12H'):
     Args:
         t (int/float/str): Epoch/Unix time or timestamp string.
         fuzzy_t (str, optional): pd.Timedelta format string. Controls the
-        look back and look forward around "t" when looking for the fill.
+                                 look back and look forward around "t" when
+                                 looking for the fill.
 
     Returns:
         dict: dict containing the start/end time of the fill and
