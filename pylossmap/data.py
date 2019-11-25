@@ -40,6 +40,46 @@ interest.
                 self.data = self.data.filter(regex=f, axis='columns')
         self.meta = self._get_metadata(meta)
 
+        # Dynamically add beam meta fetching methods
+        for k, (v, series) in BEAM_META.items():
+
+            def fetch(v=v, timeseries=series, return_raw=False, **kwargs):
+                t1 = self.data.index.get_level_values('timestamp')[0]
+                t2 = None
+                # key, timeseries = BEAM_META[v]
+                if timeseries:
+                    t2 = self.data.index.get_level_values('timestamp')[-1]
+                try:
+                    v = v.format(**kwargs)
+                except KeyError as e:
+                    raise KeyError(f"Provide {e} kwarg.")
+                out = DB.get(v, t1, t2)[v]
+                if not return_raw:
+                    out = pd.DataFrame(np.vstack(out).T, columns=['timestamp', v])
+                    out['timestamp'] = pd.to_datetime(out['timestamp'],
+                                                      unit='s',
+                                                      utc=True).dt\
+                        .tz_convert('Europe/Zurich')
+                    out = out.set_index('timestamp')
+                return out
+
+            name = f'get_{k}'
+            fetch.__name__ = name
+            fetch.__doc__ = (f"Gets the {k} value from timber closest to the datetime"
+                             " attribute.\n"
+                             "Args:\n"
+                             "\tv (str, optional): Timber variable.\n"
+                             "\ttimeseries (bool, optional): whether Timber "
+                             "variable returns a timeseries.\n"
+                             "\treturn_raw (bool, optional): if True, returns "
+                             "the timestamps along with the data.\n"
+                             "\n"
+                             "Returns:\n"
+                             "\tDataFrame or tuple: Dataframe with timestamp"
+                             "and data if return_raw is True, a tuple "
+                             "containing timestamp and data arrays.")
+            setattr(self, name, fetch)
+
     def find_max(self, BLM_max=None):
         """Finds the max timestamp and chunk in which the max occured.
 
@@ -101,40 +141,6 @@ interest.
         without_meta_df['dcum'] = None
         return pd.concat([with_meta_df, without_meta_df],
                          sort=False).sort_values('dcum')
-
-    def get_beam_meta(self, key, **kwargs):
-        """Fetched beam meta data from timber.
-
-        Args:
-            key (str): a key of utils.BEAM_META.
-            **kwargs: beam/plane if the requested timber variable requires it.
-
-        Returns:
-            DataFrame: Fetched timber data.
-
-        Raises:
-            KeyError: if timber variable requires additional kwargs.
-            ValueError: if key is not in utils.BEAM_META.
-        """
-        if key not in BEAM_META.keys():
-            raise ValueError(f'key: "{key}" is not in {BEAM_META.keys()}.')
-
-        t1 = self.data.index.get_level_values('timestamp')[0]
-        t2 = None
-        key, timeseries = BEAM_META[key]
-        if timeseries:
-            t2 = self.data.index.get_level_values('timestamp')[-1]
-        try:
-            key = key.format(**kwargs)
-        except KeyError as e:
-            raise KeyError(f"Provide {e} kwarg.")
-        data = DB.get(key, t1, t2)[key]
-        out = pd.DataFrame(np.vstack(data).T, columns=['timestamp', key])
-        out['timestamp'] = pd.to_datetime(out['timestamp'],
-                                          unit='s',
-                                          utc=True).dt\
-            .tz_convert('Europe/Zurich')
-        return out.set_index('timestamp')
 
     def loss_map(self,
                  datetime=None,
