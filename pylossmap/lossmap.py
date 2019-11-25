@@ -35,9 +35,12 @@ class LossMap:
         # Dynamically add beam meta fetching methods
         for k, (v, series) in BEAM_META.items():
 
-            def fetch(self, v=v, return_raw=False, **kwargs):
+            def fetch(v=v, return_raw=False, **kwargs):
                 self._check_datetime()
-                v = v.format(**kwargs)
+                try:
+                    v = v.format(**kwargs)
+                except KeyError as e:
+                    raise KeyError(f"Provide {e} kwarg.")
                 out = DB.get(v, self.datetime)[v]
                 if not return_raw:
                     out = out[1][0]
@@ -47,7 +50,7 @@ class LossMap:
             fetch.__doc__ = (f"Gets the {k} value from timber closest to the datetime"
                              " attribute.\n"
                              "Args:\n"
-                             "\tv (str, optional): Timber varibale.\n"
+                             "\tv (str, optional): Timber variable.\n"
                              "\treturn_raw (bool, optional): if True, returns "
                              "the timestamps along with the data.\n"
                              "\n"
