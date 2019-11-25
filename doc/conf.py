@@ -18,13 +18,13 @@ import os
 from datetime import date
 import sphinx_rtd_theme
 from pkg_resources import get_distribution
-import pylossmap
+from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
 release = get_distribution('pylossmap').version
 version = '.'.join(release.split('.')[:2])
-project = 'pylossmap {}'.format(pylossmap.__version__)
+project = 'pylossmap {}'.format(version)
 copyright = '{0}, Loic Coyle'.format(date.today().year)
 author = 'Loic Coyle'
 
@@ -65,4 +65,4 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_title = "pylossmap {}".format(pylossmap.__version__)
+html_title = "pylossmap {}".format(version)

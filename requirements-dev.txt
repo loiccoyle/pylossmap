@@ -3,7 +3,7 @@ pytest-cov
 pytest-flake8
 pytest-pylint
 pytest-watch
-sphinx
+sphinx>=2.2.1
 sphinx-autoapi
 sphinx-rtd-theme
 yapf

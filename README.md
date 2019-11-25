@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/pylossmap/badge/?version=latest)](https://pylossmap.readthedocs.io/en/latest/?badge=latest)
+
 # pylossmap
 
 This library facilitates the fetching and handling of the LHC's BLM measurements.
