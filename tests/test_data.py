@@ -36,14 +36,14 @@ class TestBLMData(unittest.TestCase):
         self.assertEqual(list(BLM_DATA.iter_max()), expected)
 
     def test_get_beam_meta(self):
-        out = BLM_DATA.get_intensity(beam=1)
+        out = BLM_DATA.fetch_intensity(beam=1)
         self.assertEqual(out.shape, (1686, 1))
 
-        out = BLM_DATA.get_filling_scheme()
+        out = BLM_DATA.fetch_filling_scheme()
         self.assertEqual(out.iloc[0][0],
                          '25ns_2556b_2544_2215_2332_144bpi_20injV3')
 
-        out = BLM_DATA.get_number_bunches(beam=1)
+        out = BLM_DATA.fetch_number_bunches(beam=1)
         self.assertEqual(out.iloc[0][0],
                          2556.0)
 
