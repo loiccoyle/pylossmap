@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pylossmap &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  <title>pylossmap &mdash; pylossmap 0.1.dev31+g5b63c22.d20191125</title>
   
 
   
@@ -49,7 +49,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+            <a href="#" class="icon icon-home"> pylossmap 0.1.dev31+g5b63c22.d20191125
           
 
           
@@ -83,7 +83,10 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pylossmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/pylossmap/fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/pylossmap/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
@@ -104,7 +107,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+          <a href="#">pylossmap 0.1.dev31+g5b63c22.d20191125</a>
         
       </nav>
 
@@ -180,16 +183,16 @@
 <p><strong>See examples in the</strong> <code class="docutils literal notranslate"><span class="pre">notebooks</span></code> <strong>folder.</strong></p>
 <p>There are 3 main classes:</p>
 <div class="section" id="the-blmdatafetcher-class">
-<h2>The BLMDataFetcher class:<a class="headerlink" href="#the-blmdatafetcher-class" title="Permalink to this headline">¶</a></h2>
+<h2>The BLMDataFetcher class<a class="headerlink" href="#the-blmdatafetcher-class" title="Permalink to this headline">¶</a></h2>
 <p>This class will handle the fetching of BLM data and assigning the correct header information.</p>
 <p>If has 2 main methods of fetching data:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">from_datetime</span></code>: which takes 2 datetime objects or epoch/unix time numbers.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">from_fill</span></code>: which takes a fill number along with the requeted beam modes.</p></li>
 </ul>
-<p>It also has a helper method to return data surrounding triggers of the ADT blowup:</p>
+<p>It also has a helper method to fetch data surrounding triggers of the ADT blowup:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">iter_from_adt</span></code>: iteratively yield BLMData instances of data surronding the trigger of the ADT within the requested time range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iter_from_adt</span></code>: iteratively yield BLMData instances of data surronding the trigger of the ADT blowup within the requested time range.</p></li>
 </ul>
 <p>In order to facilitate the fetching of BLM background for data following an ADT trigger:</p>
 <ul class="simple">
@@ -198,28 +201,28 @@
 <p>The fetcher class returns the data in the shape of a a BLMData instance.</p>
 </div>
 <div class="section" id="the-blmdata-class">
-<h2>The BLMData class:<a class="headerlink" href="#the-blmdata-class" title="Permalink to this headline">¶</a></h2>
+<h2>The BLMData class<a class="headerlink" href="#the-blmdata-class" title="Permalink to this headline">¶</a></h2>
 <p>This class handles the BLM data, the main methods are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot</span></code>: creates a waterfall plot of the BLM data.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">iter_max</span></code>: iterates on index of the max values of the desired BLMS, defaults to the primary IR 7 BLMs.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get_beam_meta</span></code>: fetches to get some additional information on the beam, i.e. intensity, number of bunches, fillibg scheme, …, for the current time range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_beam_meta</span></code>: fetches some additional information on the beam, i.e. intensity, number of bunches, fillibg scheme, …, for the current time range.</p></li>
 </ul>
 <p>You can access the raw data through the <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute.</p>
 <p>In order to create a loss map of a given time, use the <code class="docutils literal notranslate"><span class="pre">loss_map</span></code> method, and provide the desired datetime. This outputs a <code class="docutils literal notranslate"><span class="pre">LossMap</span></code> instance.</p>
 </div>
 <div class="section" id="the-lossmap-class">
-<h2>The LossMap class:<a class="headerlink" href="#the-lossmap-class" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>This class handles the loss map processing. It provides a pandas/numpy style interface for filtering and selecting BLMs.
+<h2>The LossMap class<a class="headerlink" href="#the-lossmap-class" title="Permalink to this headline">¶</a></h2>
+<p>This class handles the loss map processing. It provides a pandas/numpy style interface for filtering and selecting BLMs.
 Some main methods are:</p>
-</div></blockquote>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">plot</span></code>: to create a loss map plot.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">set_background</span></code>: to set another LossMap instance as the background signal.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">normalize</span></code>: to normalize the data to the max value, or the signal of the provided BLM.</p></li>
 <li><p>various methods for filtering based on <code class="docutils literal notranslate"><span class="pre">cell</span></code> number, <code class="docutils literal notranslate"><span class="pre">IR</span></code>, <code class="docutils literal notranslate"><span class="pre">side</span></code>, collimator <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">beam</span></code>, …</p></li>
 </ul>
+<div class="toctree-wrapper compound">
+</div>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>

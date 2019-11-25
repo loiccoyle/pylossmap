@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pylossmap.lossmap &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  <title>pylossmap.lossmap &mdash; pylossmap 0.1.dev31+g5b63c22.d20191125</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+            <a href="../../index.html" class="icon icon-home"> pylossmap 0.1.dev31+g5b63c22.d20191125
           
 
           
@@ -82,7 +82,10 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">pylossmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
@@ -103,7 +106,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+          <a href="../../index.html">pylossmap 0.1.dev31+g5b63c22.d20191125</a>
         
       </nav>
 
@@ -191,9 +194,12 @@
         <span class="c1"># Dynamically add beam meta fetching methods</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">series</span><span class="p">)</span> <span class="ow">in</span> <span class="n">BEAM_META</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 
-            <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_check_datetime</span><span class="p">()</span>
-                <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Provide </span><span class="si">{e}</span><span class="s2"> kwarg.&quot;</span><span class="p">)</span>
                 <span class="n">out</span> <span class="o">=</span> <span class="n">DB</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datetime</span><span class="p">)[</span><span class="n">v</span><span class="p">]</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">return_raw</span><span class="p">:</span>
                     <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -203,7 +209,7 @@
             <span class="n">fetch</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gets the </span><span class="si">{k}</span><span class="s2"> value from timber closest to the datetime&quot;</span>
                              <span class="s2">&quot; attribute.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;Args:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">v (str, optional): Timber varibale.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">v (str, optional): Timber variable.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">return_raw (bool, optional): if True, returns &quot;</span>
                              <span class="s2">&quot;the timestamps along with the data.</span><span class="se">\n</span><span class="s2">&quot;</span>
                              <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>

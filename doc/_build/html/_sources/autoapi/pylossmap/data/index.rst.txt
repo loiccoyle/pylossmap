@@ -43,22 +43,6 @@ Module Contents
          row = BLM_data.loc[idx]
 
 
-   .. method:: get_beam_meta(self, key, **kwargs)
-
-
-      Fetched beam meta data from timber.
-
-      :param key: a key of utils.BEAM_META.
-      :type key: str
-      :param \*\*kwargs: beam/plane if the requested timber variable requires it.
-
-      :returns: Fetched timber data.
-      :rtype: DataFrame
-
-      :raises KeyError: if timber variable requires additional kwargs.
-      :raises ValueError: if key is not in utils.BEAM_META.
-
-
    .. method:: loss_map(self, datetime=None, row=None, context=None, background=None, **kwargs)
 
 

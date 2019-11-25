@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pylossmap.data &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  <title>pylossmap.data &mdash; pylossmap 0.1.dev31+g5b63c22.d20191125</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+            <a href="../../index.html" class="icon icon-home"> pylossmap 0.1.dev31+g5b63c22.d20191125
           
 
           
@@ -82,7 +82,10 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">pylossmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../autoapi/pylossmap/data/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a></li>
@@ -103,7 +106,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+          <a href="../../index.html">pylossmap 0.1.dev31+g5b63c22.d20191125</a>
         
       </nav>
 
@@ -196,6 +199,46 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;columns&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
 
+        <span class="c1"># Dynamically add beam meta fetching methods</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">series</span><span class="p">)</span> <span class="ow">in</span> <span class="n">BEAM_META</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">series</span><span class="p">,</span> <span class="n">return_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">t2</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># key, timeseries = BEAM_META[v]</span>
+                <span class="k">if</span> <span class="n">timeseries</span><span class="p">:</span>
+                    <span class="n">t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Provide </span><span class="si">{e}</span><span class="s2"> kwarg.&quot;</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">DB</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)[</span><span class="n">v</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">return_raw</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">])</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">],</span>
+                                                      <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
+                                                      <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span>\
+                        <span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Europe/Zurich&#39;</span><span class="p">)</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">out</span>
+
+            <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;get_</span><span class="si">{k}</span><span class="s1">&#39;</span>
+            <span class="n">fetch</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">fetch</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;Gets the </span><span class="si">{k}</span><span class="s2"> value from timber closest to the datetime&quot;</span>
+                             <span class="s2">&quot; attribute.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;Args:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">v (str, optional): Timber variable.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">timeseries (bool, optional): whether Timber &quot;</span>
+                             <span class="s2">&quot;variable returns a timeseries.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">return_raw (bool, optional): if True, returns &quot;</span>
+                             <span class="s2">&quot;the timestamps along with the data.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;Returns:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">DataFrame or tuple: Dataframe with timestamp&quot;</span>
+                             <span class="s2">&quot;and data if return_raw is True, a tuple &quot;</span>
+                             <span class="s2">&quot;containing timestamp and data arrays.&quot;</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fetch</span><span class="p">)</span>
+
 <div class="viewcode-block" id="BLMData.find_max"><a class="viewcode-back" href="../../autoapi/pylossmap/data/index.html#pylossmap.data.BLMData.find_max">[docs]</a>    <span class="k">def</span> <span class="nf">find_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">BLM_max</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Finds the max timestamp and chunk in which the max occured.</span>
 
@@ -257,40 +300,6 @@
         <span class="n">without_meta_df</span><span class="p">[</span><span class="s1">&#39;dcum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">with_meta_df</span><span class="p">,</span> <span class="n">without_meta_df</span><span class="p">],</span>
                          <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;dcum&#39;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="BLMData.get_beam_meta"><a class="viewcode-back" href="../../autoapi/pylossmap/data/index.html#pylossmap.data.BLMData.get_beam_meta">[docs]</a>    <span class="k">def</span> <span class="nf">get_beam_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fetched beam meta data from timber.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            key (str): a key of utils.BEAM_META.</span>
-<span class="sd">            **kwargs: beam/plane if the requested timber variable requires it.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            DataFrame: Fetched timber data.</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            KeyError: if timber variable requires additional kwargs.</span>
-<span class="sd">            ValueError: if key is not in utils.BEAM_META.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BEAM_META</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;key: &quot;</span><span class="si">{key}</span><span class="s1">&quot; is not in {BEAM_META.keys()}.&#39;</span><span class="p">)</span>
-
-        <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">t2</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">key</span><span class="p">,</span> <span class="n">timeseries</span> <span class="o">=</span> <span class="n">BEAM_META</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">timeseries</span><span class="p">:</span>
-            <span class="n">t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Provide </span><span class="si">{e}</span><span class="s2"> kwarg.&quot;</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">DB</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)[</span><span class="n">key</span><span class="p">]</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">,</span> <span class="n">key</span><span class="p">])</span>
-        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">],</span>
-                                          <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span>
-                                          <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span>\
-            <span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Europe/Zurich&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BLMData.loss_map"><a class="viewcode-back" href="../../autoapi/pylossmap/data/index.html#pylossmap.data.BLMData.loss_map">[docs]</a>    <span class="k">def</span> <span class="nf">loss_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">datetime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>

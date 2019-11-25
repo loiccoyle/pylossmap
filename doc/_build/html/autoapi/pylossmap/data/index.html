@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pylossmap.data &mdash; pylossmap 0.1.dev29+g7ccf30a.d20191123</title>
+  <title>pylossmap.data &mdash; pylossmap 0.1.dev31+g5b63c22.d20191125</title>
   
 
   
@@ -50,7 +50,7 @@
           
 
           
-            <a href="../../../index.html" class="icon icon-home"> pylossmap 0.1.dev29+g7ccf30a.d20191123
+            <a href="../../../index.html" class="icon icon-home"> pylossmap 0.1.dev31+g5b63c22.d20191125
           
 
           
@@ -84,7 +84,10 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">pylossmap</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../fetcher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.fetcher</span></code></a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pylossmap.data</span></code></a><ul>
@@ -94,9 +97,6 @@
 </ul>
 <ul>
 <li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.iter_max">iter_max</a></li>
-</ul>
-<ul>
-<li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.get_beam_meta">get_beam_meta</a></li>
 </ul>
 <ul>
 <li class="toctree-l4"><a class="reference internal" href="#pylossmap.data.BLMData.loss_map">loss_map</a></li>
@@ -132,7 +132,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">pylossmap 0.1.dev29+g7ccf30a.d20191123</a>
+          <a href="../../../index.html">pylossmap 0.1.dev31+g5b63c22.d20191125</a>
         
       </nav>
 
@@ -230,32 +230,6 @@ for idx, blms in BLM_date.iter_max():</p>
 <blockquote>
 <div><p>row = BLM_data.loc[idx]</p>
 </div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="pylossmap.data.BLMData.get_beam_meta">
-<code class="sig-name descname">get_beam_meta</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">key</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/pylossmap/data.html#BLMData.get_beam_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylossmap.data.BLMData.get_beam_meta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetched beam meta data from timber.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>key</strong> (<em>str</em>) – a key of utils.BEAM_META.</p></li>
-<li><p><strong>**kwargs</strong> – beam/plane if the requested timber variable requires it.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Fetched timber data.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>DataFrame</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>KeyError</strong> – if timber variable requires additional kwargs.</p></li>
-<li><p><strong>ValueError</strong> – if key is not in utils.BEAM_META.</p></li>
-</ul>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
