@@ -79,7 +79,7 @@ def fill_from_time(t, fuzzy_t='12H'):
 
     Returns:
         dict: dict containing the start/end time of the fill and
-        with beam mode info.
+              with beam mode info.
 
     Raises:
         ValueError: if not fill is found.
@@ -186,11 +186,11 @@ def get_ADT(t1,
         planes (list, optional): requested planes.
         beams (list, optional): requested beams.
         include (list, optional): list of ADT metrcis to fetch from timber.
-        Must be a key of ADT_META.
+                                  Must be a key of ADT_META.
 
     Returns:
         DataFrame: DataFrame as index the timestamp and columns the
-        triggers of the beams/planes.
+                   triggers of the beams/planes.
     """
     if not set(include) <= set(ADT_META.keys()):
         raise ValueError(f'"include" keys must be in {ADT_META.key()}')
@@ -225,6 +225,19 @@ def get_ADT(t1,
 
 
 def sanitize_t(t):
+    """Sanitizes input epoch or datetime string to pd.Timestamp in
+    'Europe/Zurich' timezone.
+
+    Args:
+        t (int, float, str): - int or float: assumes utc time, converts to \
+pd.Timestamp and to 'Europe/Zurich. \
+- str: a pd.to_datetime compatible str, converts to pd.Timestamp and to
+'Europe/Zurich' if not already.
+
+    Returns:
+        pd.Timestamp: Timestamp object for the given time.
+    """
+
     if isinstance(t, (float, int)):
         t = to_datetime(t)
     elif isinstance(t, str):
