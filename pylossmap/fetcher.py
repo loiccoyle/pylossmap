@@ -321,7 +321,7 @@ AND logic.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
-            trigger.
+                     trigger.
         """
 
         # TODO: figure out if this conditions and include things are the best
@@ -560,31 +560,27 @@ list. Each is tried in sequence, until a compatible header is found.
         """
         # TODO: cleanup the pbar thing ...
         data = []
-
         bm_iter = beam_modes.columns
         bm_iter = PBar(beam_modes.columns, desc='Beam mode')
-
         for mode in bm_iter:
-            # TODO: look into to tqdm set_description will be offset ?
             bm_iter.set_description(f'Beam mode {mode}')
 
             t_chunks = list(self._date_chunk(beam_modes[mode]['startTime'],
                                              beam_modes[mode]['endTime'],
                                              pd.Timedelta(self.d_t)))
             d = []
-
             t_iter = zip(t_chunks, t_chunks[1:])
             t_iter = PBar(t_iter, total=len(t_chunks) - 1)
-
             for t1, t2 in t_iter:
-                t_iter.set_description(f'{t1.strftime("%m-%d %H:%M:%S")} ▶{t2.strftime("%m-%d %H:%M:%S")}')
+                t_iter.set_description(t_chunks[0].strftime("%m-%d %H:%M:%S") +
+                                       ' ▶' +
+                                       t_chunks[-1].strftime("%m-%d %H:%M:%S"))
                 d_i = self._fetch_data_t(t1, t2)
                 if d_i is not None:
                     d.append(d_i)
             if d:
                 d = pd.concat(d)
                 data.append(d)
-
         if not data:
             return
 

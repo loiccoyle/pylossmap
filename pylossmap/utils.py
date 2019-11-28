@@ -101,6 +101,17 @@ def fill_from_time(t, fuzzy_t='12H'):
 
 
 def beammode_from_time(t, fill=None, **kwargs):
+    """gets the beam mode at a given timestamp.
+
+    Args:
+        t (int/float/str): Epoch/Unix time or timestamp string.
+        fill (dict, optional): If provided will skip looking for the fill and
+                               use the provided fill.
+        **kwargs: passed to utils.fill_from_time.
+
+    Returns:
+        dict: if beam mode if found: beam mode dict, otherwise the fill dict.
+    """
     t = sanitize_t(t)
     if fill is None:
         fill = fill_from_time(t, **kwargs)
