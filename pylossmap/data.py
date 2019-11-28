@@ -153,8 +153,9 @@ class BLMData:
         without_meta_df = pd.DataFrame({'blm': without_meta}).set_index('blm')
         without_meta_df['type'] = 'other'
         without_meta_df['dcum'] = None
-        return pd.concat([with_meta_df, without_meta_df],
-                         sort=False).sort_values('dcum')
+        return pd.concat([with_meta_df, without_meta_df], sort=False)\
+            .sort_values('dcum')\
+            .astype({'dcum': 'int64', 'type': 'str'})
 
     def loss_map(self,
                  datetime=None,
@@ -225,8 +226,14 @@ class BLMData:
         if file_path.is_file():
             raise OSError(f'File {file_path} already exists.')
 
-        self.data.to_hdf(file_path, key='data')
-        self.meta.to_hdf(file_path, key='meta')
+        # remove BLM names from columns due to hdf header size limitation.
+        save_data = self.data.copy()
+        save_data.columns = range(save_data.shape[1])
+        save_data.to_hdf(file_path, key='data', format='table')
+        self.meta.to_hdf(file_path, key='meta', format='table', append=True)
+        # write columns real columns name in separate file.
+        with open(file_path.with_suffix('.csv'), 'w') as fp:
+            fp.writelines(self.data.columns)
 
     def plot(self, data=None, title=None, **kwargs):
         """Plots a waterfall plot of the data. Note, will produce multiple
@@ -291,5 +298,8 @@ def load(file_path, **kwargs):
 
     data = pd.read_hdf(file_path, 'data')
     meta = pd.read_hdf(file_path, 'meta')
-
-    return BLMData(data, meta, meta, **kwargs)
+    # read real columns from csv file & replace fake columns
+    with open(file_path.with_suffix('.csv'), 'r') as fp:
+        columns = fp.readlines()
+    data.columns = [c.rstrip() for c in columns]
+    return BLMData(data, meta, **kwargs)
