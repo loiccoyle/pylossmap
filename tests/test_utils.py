@@ -56,8 +56,19 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(out['SETUP']['endTime'],
                          utils.to_datetime(1527800145.6739998))
 
-    # def test_row_from_time(self):
-    #     pass
+    def test_row_from_time(self):
+        times = [pd.to_datetime('2019-01-01 00:00:00').tz_localize('Europe/Zurich'),
+                 pd.to_datetime('2019-01-02 00:00:00').tz_localize('Europe/Zurich'),
+                 pd.to_datetime('2019-01-03 00:00:00').tz_localize('Europe/Zurich')]
+        data = [1, 2, 3]
+        data_2 = ['a', 'b', 'c']
+        df = pd.DataFrame({'timestamp': times,
+                           'data': data,
+                           'data_2': data_2})
+        df.set_index('timestamp', inplace=True)
+        row = utils.row_from_time(df, '2019-01-02 01:00:00', method='nearest')
+        self.assertEqual(row['data'], df.iloc[1]['data'])
+        self.assertEqual(row['data_2'], df.iloc[1]['data_2'])
 
     def test_coll_meta(self):
         out = utils.coll_meta()
