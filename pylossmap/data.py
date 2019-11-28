@@ -23,11 +23,11 @@ class BLMData:
         """This class handles the parsing/preprocessing & plotting of the BLM data.
 
         Args:
-            data (DataFrame): MultiIndex DataFrame containing the BLM \
-measurements, for the various beam modes & query chunks.
-            meta (DataFrame): DataFrame containing the BLM metadata. \
-BLM_filter (list/str, optional): regex str of list of regex strs, BLMs of \
-interest.
+            data (DataFrame): MultiIndex DataFrame containing the BLM
+                measurements, for the various beam modes & query chunks.
+            meta (DataFrame): DataFrame containing the BLM metadata.
+            BLM_filter (list/str, optional): regex str of list of regex strs,
+                BLMs of interest.
             context (optional): additional info.
         """
         self._logger = logging.getLogger(__name__)
@@ -67,13 +67,13 @@ interest.
         Args:
             v (str, optional): Timber variable.
             timeseries (bool, optional): whether Timber variable returns a
-                                         timeseries.
+                timeseries.
             return_raw (bool, optional): if True, returns the timestamps along
-                                          with the data.
+                with the data.
         Returns:
             DataFrame or tuple: Dataframe with timestamp and data. If
-                                return_raw is True, a tuple containing
-                                timestamp and data arrays.
+                return_raw is True, a tuple containing timestamp and data
+                arrays.
         """
         t1 = self.data.index.get_level_values('timestamp')[0]
         t2 = None
@@ -99,7 +99,7 @@ interest.
 
         Args:
             BLM_max (list, optional): List of BLMs, defaults to the primary
-                                      blms in IR 7.
+                blms in IR 7.
 
         Returns:
             DataFrame: DataFrame containing a tuple: (mode, datetime).
@@ -118,7 +118,7 @@ interest.
 
         Args:
             BLM_max (list, optional): List of BLMs, defaults to the primary
-                                      blms in IR 7.
+                blms in IR 7.
 
         Returns:
             generator: ((mode, datetime), BLM_max)
@@ -144,7 +144,7 @@ interest.
 
         Returns:
             DataFrame: DataFrame with blms as index and "dcum" & "type" as
-                       columns.
+                columns.
         """
         blms = set(self.data.columns)
         with_meta = list(blms & set(meta.index.tolist()))
@@ -165,13 +165,14 @@ interest.
         """Creates a LossMap instance.
 
         Args:
-            datetime (Datetime, optional): If provided, is used to find a \
-desired row in the data which corresponds to datetime.
+            datetime (Datetime, optional): If provided, is used to find a
+                desired row in the data which corresponds to datetime.
             row (Series, optional): Row of data for which to create the LossMap
-                                    instance.
+                instance.
             context (optional): if None, will use self.context.
-            background (Series, optional): if provided will create a LossMap \
-instance for the background and will link it to the data's LossMap.
+            background (Series, optional): if provided will create a LossMap
+                instance for the background and will link it to the data's
+                LossMap.
             **kwargs: passed to LossMap.__init__.
 
         Returns:
@@ -215,7 +216,7 @@ instance for the background and will link it to the data's LossMap.
 
         Args:
             file_path (str/path): Path to hdf file in which to save the
-                                  DataFrames.
+                DataFrames.
 
         Raises:
             OSError: If file already exists.
@@ -234,7 +235,7 @@ instance for the background and will link it to the data's LossMap.
         Args:
             data (DataFrame, optional): DataFrame containing the BLM data.
             title (str, optional): figure title, '{mode}' gets replaced with
-                                   the beam mode.
+               the beam mode.
             **kwargs: passed to plotting.plot_waterfall
         """
         # TODO: fix this format mode thing
@@ -256,9 +257,9 @@ instance for the background and will link it to the data's LossMap.
     def __getitem__(self, key):
         '''
         Args:
-            key (int, float, str): if int then the corresponding data row is \
-used to create a LossMap instance. If float or str then assumed unix time or \
-pd.to_datetime compatible str.
+            key (int, float, str): if int then the corresponding data row is
+                used to create a LossMap instance. If float or str then assumed
+                unix time or pd.to_datetime compatible str.
 
         Returns:
             LossMap: LossMap instance with the desired BLM data.

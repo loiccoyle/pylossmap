@@ -40,8 +40,8 @@ class LossMap:
             meth = partial(self.fetch_var, v)
             name = f'fetch_{k}'
             meth.__name__ = name
-            meth.__doc__ = (f"Gets the {k} value from timber closest to the "
-                            "datetime attribute.\n"
+            meth.__doc__ = (f"Fetches the value {k} from timber closest in "
+                            "time to the datetime attribute.\n"
                             "Args:\n"
                             "\tv (str, optional): Timber variable.\n"
                             "\treturn_raw (bool, optional): if True, returns "
@@ -53,16 +53,17 @@ class LossMap:
             setattr(self, name, meth)
 
     def fetch_var(self, v, return_raw=False, **kwargs):
-        """Gets the {k} value from timber closest to the datetime attribute.
+        """Fetches the value of a timber variable closest in time to the
+        datetime attribute.
 
         Args:
             v (str, optional): Timber variable.
             return_raw (bool, optional): if True, returns the timestamps along
-                                         with the data.
+                with the data.
 
         Returns:
             float or tuple: data point, if return_raw is True, returns tuple
-            (timestamp, data).
+                (timestamp, data).
         """
         self._check_datetime()
         try:
@@ -133,7 +134,7 @@ class LossMap:
 
         Returns:
             LossMap: LossMap instance containing the BLMs which matched the
-            regex string.
+                regex string.
         """
         ret = self.copy()
         ret.data = ret.data.filter(regex=reg, axis='index')
@@ -173,7 +174,7 @@ class LossMap:
 
         Returns:
             LossMap: LossMap instance containing the dispersion suppressors
-            BLMs.
+                BLMs.
         """
         return self.filter(rf'BLMQ[IE]\.(0[7-9]|10|11)[RL][37]')
 
@@ -389,7 +390,7 @@ class CollLossMap(LossMap):
         Args:
             data (DataFrame): Dataframe contraining BLM data, dcum, type.
             coll_df (DataFrame, optional): DataFrame containing collimator
-            info.
+                info.
             **kwargs: passed to LossMap.__init__.
         """
         if coll_df is None:

@@ -38,7 +38,7 @@ def uniquify(iterable):
 
     Args:
         iterable (Iterable): list to uniquify, duplicates will have
-                             "_{number}" added to them.
+            "_{number}" added to them.
 
     Yields:
         str: uniquified element of iterable
@@ -74,8 +74,7 @@ def fill_from_time(t, fuzzy_t='12H'):
     Args:
         t (int/float/str): Epoch/Unix time or timestamp string.
         fuzzy_t (str, optional): pd.Timedelta format string. Controls the
-                                 look back and look forward around "t" when
-                                 looking for the fill.
+            look back and look forward around "t" when looking for the fill.
 
     Returns:
         dict: dict containing the start/end time of the fill and
@@ -106,7 +105,7 @@ def beammode_from_time(t, fill=None, **kwargs):
     Args:
         t (int/float/str): Epoch/Unix time or timestamp string.
         fill (dict, optional): If provided will skip looking for the fill and
-                               use the provided fill.
+            use the provided fill.
         **kwargs: passed to utils.fill_from_time.
 
     Returns:
@@ -186,11 +185,11 @@ def get_ADT(t1,
         planes (list, optional): requested planes.
         beams (list, optional): requested beams.
         include (list, optional): list of ADT metrcis to fetch from timber.
-                                  Must be a key of ADT_META.
+            Must be a key of ADT_META.
 
     Returns:
         DataFrame: DataFrame as index the timestamp and columns the
-                   triggers of the beams/planes.
+            triggers of the beams/planes.
     """
     if not set(include) <= set(ADT_META.keys()):
         raise ValueError(f'"include" keys must be in {ADT_META.key()}')
@@ -229,10 +228,12 @@ def sanitize_t(t):
     'Europe/Zurich' timezone.
 
     Args:
-        t (int, float, str): - int or float: assumes utc time, converts to \
-pd.Timestamp and to 'Europe/Zurich. \
-- str: a pd.to_datetime compatible str, converts to pd.Timestamp and to
-'Europe/Zurich' if not already.
+        t (int, float, str):
+            - int or float: assumes utc time, converts to pd.Timestamp and to
+            'Europe/Zurich.
+
+            - str: a pd.to_datetime compatible str, converts to pd.Timestamp
+            and to 'Europe/Zurich' timezone if not already.
 
     Returns:
         pd.Timestamp: Timestamp object for the given time.
