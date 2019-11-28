@@ -253,6 +253,24 @@ instance for the background and will link it to the data's LossMap.
         else:
             return plot_waterfall(data=data, meta=self.meta, **kwargs)
 
+    def __getitem__(self, key):
+        '''
+        Args:
+            key (int, float, str): if int then the corresponding data row is \
+used to create a LossMap instance. If float or str then assumed unix time or \
+pd.to_datetime compatible str.
+
+        Returns:
+            LossMap: LossMap instance with the desired BLM data.
+        '''
+        if isinstance(key, int):
+            # get row time from data index.
+            time = self.data.index[key][-1]
+        else:
+            # assume epoch or to_datetime str.
+            time = sanitize_t(key)
+        return self.loss_map(datetime=time)
+
 
 def load(file_path, **kwargs):
     """Load the data from a hdf file and create a LossMapData instance.
