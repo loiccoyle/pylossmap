@@ -6,7 +6,6 @@ import pandas as pd
 from pathlib import Path
 
 from .utils import DB
-from .metadata.headers import HEADERS
 from .timber_vars import INTENSITY
 from .data import BLMData
 from .utils import get_ADT
@@ -16,6 +15,7 @@ from .utils import beammode_to_df
 from .utils import fill_from_time
 from .utils import sanitize_t
 from .utils import PBar
+from .utils import files_to_df
 from .blm_type_map import name_to_type
 
 
@@ -41,17 +41,17 @@ class BLMDataFetcher:
         PBar.use_tqdm = pbar
         PBar.mute = mute
 
+        # header cache
         self.__header = None
-        self.__coord_file = Path(__file__).parent / 'metadata' / 'blm_dcum.csv'
+        # metadata folder locations
+        self.__dcum_folder = Path(__file__).parent / 'metadata' / 'dcum'
+        self.__manual_headers_folder = (Path(__file__).parent / 'metadata' /
+                                        'headers')
 
         self.d_t = d_t
         self.BLM_var = BLM_var
 
         self._logger = logging.getLogger(__name__)
-        # header cache
-        # TODO: This _get_coord_t thing is quite slow, think of another way of
-        # doing this.
-        self._coord_t = self._get_coord_t()
         self._db = DB
 
     def clear_header(self):
@@ -408,21 +408,6 @@ class BLMDataFetcher:
         bm_df = beammode_to_df(bm_t['beamModes'], **kwargs)
         return fill_t, bm_df
 
-    def _get_coord_t(self):
-        """Extract the timestamps from the coord files in "blm_coords" folder,
-        and create a dataframe which maps the timestamp to the file.
-
-        Returns:
-            DataFrame: DataFrame with as index the timestamp and one column,
-                the file path.
-        """
-        header_coords = pd.read_csv(self.__coord_file,
-                                    index_col=[0, 1],
-                                    parse_dates=[0],
-                                    date_parser=lambda x: pd.to_datetime(x).tz_convert('Europe/Zurich'))
-        # header_coords = pd.read_hdf(self.__coord_file)
-        return header_coords
-
     @staticmethod
     def _date_chunk(start, end, diff):
         '''Create time chunks of size diff, between start and end.
@@ -451,12 +436,12 @@ class BLMDataFetcher:
         Returns:
             DataFrame: DataFrame containing blm, position and type.
         """
-        meta_time_ind = self._coord_t.index.levels[0].get_loc(t,
-                                                              method='ffill')
-        meta_time = self._coord_t.index.levels[0][meta_time_ind]
-        self._logger.info(f'Using meta from {meta_time}.')
-        # this copy is to avoid pandas chain assignment warning
-        meta = self._coord_t.loc[meta_time].copy()
+        dcum_df = files_to_df(self.__dcum_folder)
+        meta_time_ind = dcum_df.index.get_loc(t, method='ffill')
+        meta_time = dcum_df.index[meta_time_ind]
+        self._logger.info(f'Using BLM metadata from {meta_time}.')
+        dcum_file = self.__dcum_folder / dcum_df.loc[meta_time].values[0]
+        meta = pd.read_csv(dcum_file, index_col=0)
         meta['type'] = meta.apply(lambda x: name_to_type(x['blm']),
                                   axis=1)
         meta = meta.set_index('blm')
@@ -471,15 +456,15 @@ class BLMDataFetcher:
         Returns:
             list: list of columns containing the name of BLMs.
         """
-        blms = self.fetch_meta(t=t).index.tolist()
+        blms = self.fetch_meta(t).index.tolist()
         blms = [b for b in blms if b.split('.')[0] not in ['BLMTS', 'BLMMI',
                                                            'BLMES', 'BLMDS',
                                                            'BLMCK', 'BLMAS',
                                                            'BLMCD']]
         return blms
 
-    def fetch_force_header(self, t):
-        """Fetch the fill's column names from metadata/headers.py file.
+    def fetch_manual_header(self, t):
+        """Fetch the fill's column names from manual header files.
 
         Args:
             t (DateTime): Time of data.
@@ -488,11 +473,14 @@ class BLMDataFetcher:
             list: list of columns containing the name of BLMs.
         """
         # TODO: this order of these headers can be slightly off...
-        headers = pd.DataFrame.from_dict(HEADERS, orient='index')
-        headers.index = pd.to_datetime(headers.index).tz_localize('Europe/Zurich')
-        headers = headers.sort_index()
-        headers.index.name = 'timestamp'
-        return row_from_time(headers, t, method='ffill').dropna().tolist()
+        manual_header_df = files_to_df(self.__manual_headers_folder)
+        manual_header_ind = manual_header_df.index.get_loc(t, method='ffill')
+        manual_header_file = (self.__manual_headers_folder /
+                              manual_header_df.iloc[manual_header_ind].values[0])
+        with open(manual_header_file) as fp:
+            blms = [line.rstrip() for line in fp]
+
+        return blms
 
     def fetch_timber_header(self, t):
         """Fetch the fill's column names from timber.
@@ -522,7 +510,7 @@ class BLMDataFetcher:
             DataFrame: DataFrame containing the BLM data.
         """
         header_fetchers = [self.fetch_timber_header,
-                           self.fetch_force_header,
+                           self.fetch_manual_header,
                            self.fetch_logging_header]
 
         data = self._db.get(self.BLM_var, t1, t2)[self.BLM_var]

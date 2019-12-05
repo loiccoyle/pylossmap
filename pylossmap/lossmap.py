@@ -363,7 +363,7 @@ class LossMap:
             bg_str = f"\n\tbackground:\n{self._background.df.__repr__()}"
 
         return f"LossMap:\n\
-\tdata:\n{self.df.__repr__()}" + bg_str
+\tdf:\n{self.df.__repr__()}" + bg_str
 
     def plot(self, data=None, **kwargs):
         if data is None:

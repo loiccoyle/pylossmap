@@ -230,7 +230,7 @@ def sanitize_t(t):
     Args:
         t (int, float, str):
             - int or float: assumes utc time, converts to pd.Timestamp and to
-            'Europe/Zurich.
+            Europe/Zurich timezone.
 
             - str: a pd.to_datetime compatible str, converts to pd.Timestamp
             and to 'Europe/Zurich' timezone if not already.
@@ -249,6 +249,28 @@ def sanitize_t(t):
         elif t.tz.zone != 'Europe/Zurich':
             t = t.tz_convert('Europe/Zurich')
     return t
+
+
+def files_to_df(folder):
+    """Converts '%Y_%m_%d_%H_%M_%S%z' format file names into a dataframe with
+    with the corresponding timestamp as index and filename as the only column.
+
+    Args:
+        folder (path like): path to folder containing the time format
+            compatible files.
+
+    Returns:
+        DataFrame: DatetimeIndexed DataFrame with a single column containing
+            the file names.
+    """
+    folder = Path(folder)
+    time_format = '%Y_%m_%d_%H_%M_%S%z'
+    files = [file.name for file in folder.glob('*')]
+    times = [pd.to_datetime(str(f).split('.')[0], format=time_format)
+             .tz_convert('Europe/Zurich') for f in files]
+    return pd.DataFrame({'file': files, 'timestamp': times})\
+        .set_index('timestamp')\
+        .sort_index()
 
 
 # Helper class to handle wether to display the progress bar

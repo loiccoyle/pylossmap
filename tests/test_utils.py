@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from pylossmap import utils
 
 
@@ -95,3 +96,10 @@ class TestUtils(unittest.TestCase):
         inp = 1574438246
         self.assertEqual(utils.sanitize_t(inp),
                          utils.to_datetime(inp))
+
+    def test_file_to_df(self):
+        inp = Path(__file__).parents[1] / 'pylossmaps' / 'metadata' / 'headers'
+        out = utils.files_to_df(inp)
+        self.assertEqual(len(out), len(list(inp.glob('*'))))
+        self.assertEqual(out['file'].to_list(),
+                         [f.name for f in inp.glob('*')])

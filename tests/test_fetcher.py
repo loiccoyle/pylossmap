@@ -49,9 +49,9 @@ class TestLoader(unittest.TestCase):
         blms = LOADER.fetch_logging_header(t1)
         self.assertEqual(len(blms), 3747)
 
-    def test_force_header(self):
+    def test_manual_header(self):
         t1 = pd.to_datetime('2018-04-08 22:00:00').tz_localize('Europe/Zurich')
-        blms = LOADER.fetch_force_header(t1)
+        blms = LOADER.fetch_manual_header(t1)
         self.assertEqual(len(blms), 3761)
 
     def test_timber_header(self):
