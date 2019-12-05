@@ -49,12 +49,15 @@ class BLMDataFetcher:
 
         self._logger = logging.getLogger(__name__)
         # header cache
+        # TODO: This _get_coord_t thing is quite slow, think of another way of
+        # doing this.
         self._coord_t = self._get_coord_t()
         self._db = DB
 
     def clear_header(self):
         """Clears cached headers.
         """
+        self._logger.debug('Clearing headers.')
         self.__header = None
 
     def from_datetimes(self, t1, t2, keep_headers=False, **kwargs):
@@ -66,7 +69,7 @@ class BLMDataFetcher:
             t2 (Datetime): interval end.
             keep_headers (optional, bool): Controls whether to clear the
                 headers before fetching data.
-            **kwargs: pass to BLMData __init__.
+            **kwargs: passed to BLMData.__init__.
 
         Returns:
             BLMDataCycle: BLMDataCycle instance with the desired data.
@@ -132,7 +135,7 @@ class BLMDataFetcher:
                 INJPHYS beam mode.
             keep_headers (optional, bool): Controls whether to clear the
                 headers before fetching data.
-            **kwargs: passed to BLMData __init__.
+            **kwargs: passed to BLMData.__init__.
 
         Returns:
             BLMData: BLMData instance with the desired data.
@@ -222,6 +225,10 @@ class BLMDataFetcher:
 
         Returns:
             DataFrame: DataFrame containing the background signal.
+
+        Raises:
+            ValueError: if unable to find an region in time with no ADT trigger
+                respecting the desired constraints.
         """
         if trigger_t is None:
             trigger_t = self.data.index.get_level_values('timestamp')[0]
@@ -257,7 +264,7 @@ class BLMDataFetcher:
             data_range = g.index[0] - g.index[-1] - dt_prior - dt_post
             if not g.any().any() and data_range >= min_bg_dt:
                 section = g[::-1]
-                self._logger.info(f"Found background {i} plateaus back")
+                self._logger.debug(f"Found background {i} plateaus back.")
                 break
 
         if section is None:
@@ -273,8 +280,8 @@ class BLMDataFetcher:
         if t2 - t1 > max_bg_dt:
             t1 = t2 - max_bg_dt
 
-        self._logger.info(f'Background timestamp t1: {t1}')
-        self._logger.info(f'Background timestamp t2: {t2}')
+        self._logger.debug(f'Background timestamp t1: {t1}')
+        self._logger.debug(f'Background timestamp t2: {t2}')
 
         return self.from_datetimes(t1, t2, keep_headers=True)
 
@@ -316,6 +323,10 @@ class BLMDataFetcher:
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
                 trigger.
+
+        Raises:
+            ValueError: if 'conditions' are badly set, if no ADT triggers are
+                found within time range.
         """
 
         # TODO: figure out if this conditions and include things are the best
@@ -327,6 +338,7 @@ class BLMDataFetcher:
 
         if not keep_headers:
             self.clear_header()
+
         t1 = sanitize_t(t1)
         t2 = sanitize_t(t2)
 
@@ -467,7 +479,7 @@ class BLMDataFetcher:
         return blms
 
     def fetch_force_header(self, t):
-        """Fetch the fill's column names from header.py file.
+        """Fetch the fill's column names from metadata/headers.py file.
 
         Args:
             t (DateTime): Time of data.
@@ -524,11 +536,11 @@ class BLMDataFetcher:
         if self.__header is None:
             for fetcher in header_fetchers:
                 columns = fetcher(t1)
-                self._logger.info(f'Header from self.{fetcher.__name__}: {len(columns)}.')
+                self._logger.debug(f'Header from self.{fetcher.__name__}: {len(columns)}.')
                 # self._logger.debug(f'Header from self.{fetcher.__name__}:\n{columns}')
-                self._logger.info(f'Number of columns in data: {data[1].shape[1]}.')
+                self._logger.debug(f'Number of columns in data: {data[1].shape[1]}.')
                 if len(columns) == data[1].shape[1]:
-                    self._logger.info(f'Using header from self.{fetcher.__name__}.')
+                    self._logger.debug(f'Using header from self.{fetcher.__name__}.')
                     self.__header = columns
 
         if self.__header is None:
