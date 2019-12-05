@@ -235,7 +235,7 @@ class BLMData:
         self.meta.to_hdf(file_path, key='meta', format='table', append=True)
         # write columns real columns name in separate file.
         with open(file_path.with_suffix('.csv'), 'w') as fp:
-            fp.writelines(self.data.columns)
+            fp.write('\n'.join(self.data.columns))
 
     def plot(self, data=None, title=None, **kwargs):
         """Plots a waterfall plot of the data. Note, will produce multiple

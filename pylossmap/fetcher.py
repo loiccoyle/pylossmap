@@ -187,7 +187,7 @@ class BLMDataFetcher:
         b1 = timber_to_df(out, INTENSITY.format(beam=1))
         b2 = timber_to_df(out, INTENSITY.format(beam=2))
         intensity = pd.concat([b1, b2], axis=1)
-        no_beam = (intensity < 1e4).all(axis=1)
+        no_beam = (intensity < 1e14).all(axis=1)
         t1 = intensity[no_beam].index[0]
         if (~no_beam).any():
             t2 = intensity[~no_beam].index[0]
