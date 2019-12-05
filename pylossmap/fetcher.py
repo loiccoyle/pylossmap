@@ -254,7 +254,7 @@ class BLMDataFetcher:
         # hacky way of making the 'edges' connect properly
         shifted.index -= pd.Timedelta('1MS')
         joined = pd.concat([joined, shifted])
-        joined.sort_values(by='timestamps', axis='index', inplace=True)
+        joined.sort_values(by='timestamp', axis='index', inplace=True)
         # reverse joined to avoid useless iterations
         joined = joined[::-1]
         # find plateaus where the ADT was not triggered

@@ -209,9 +209,9 @@ def get_ADT(t1,
                   t2)
     dfs = []
     for var, d in data.items():
-        df = pd.DataFrame(np.vstack(d).T, columns=['timestamps', var])
-        df['timestamps'] = to_datetime(df['timestamps'].values)
-        df = df.set_index('timestamps')
+        df = pd.DataFrame(np.vstack(d).T, columns=['timestamp', var])
+        df['timestamp'] = to_datetime(df['timestamp'].values)
+        df = df.set_index('timestamp')
         dfs.append(df)
 
     # join them all on d[0]
