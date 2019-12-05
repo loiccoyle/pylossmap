@@ -511,23 +511,19 @@ class BLMDataFetcher:
                                 method='ffill').dropna().tolist()
         return columns
 
-    def _fetch_data_t(self, t1, t2, header_fetchers=None):
+    def _fetch_data_t(self, t1, t2):
         """Fetch the data for one time chunk.
 
         Args:
             t1 (Datetime): Start time of the data fetch.
             t2 (Datetime): End time of the data fetch.
-            header_fetchers (list, optional): list of callable which return a
-                list. Each is tried in sequence, until a compatible header is
-                found.
 
         Returns:
             DataFrame: DataFrame containing the BLM data.
         """
-        if header_fetchers is None:
-            header_fetchers = [self.fetch_timber_header,
-                               self.fetch_force_header,
-                               self.fetch_logging_header]
+        header_fetchers = [self.fetch_timber_header,
+                           self.fetch_force_header,
+                           self.fetch_logging_header]
 
         data = self._db.get(self.BLM_var, t1, t2)[self.BLM_var]
         if data[1].size == 0:
