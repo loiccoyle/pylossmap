@@ -277,17 +277,19 @@ class LossMap:
                                   prepare=lambda x: str(int(x)))
         return self.filter(rf'B({beam})')
 
-    def type(self, types):
+    def type(self, *types):
         '''Gets the BLM for the requested blm types.
 
         Args:
-            types (list/str): string or list of the types of interest.
+            types (str): string of the type(s) of interest, subset of
+                {cold, warm, coll, xrp}.
 
         Returns:
             LossMap: LossMap instance with the desired BLM types.
         '''
-        if not isinstance(types, list):
-            types = [types]
+        allowed = {'cold', 'warm', 'coll', 'xrp'}
+        if not set(types) <= allowed:
+            raise ValueError(f'"{types}" must be subset of {allowed}.')
 
         ret = self.copy()
         ret.data = self.data[self.data['type'].isin(types)]
