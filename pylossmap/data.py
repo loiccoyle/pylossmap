@@ -33,12 +33,12 @@ class BLMData:
         self._logger = logging.getLogger(__name__)
         self.context = context
 
-        self.data = data
+        self.df = data
         if BLM_filter is not None:
             if not isinstance(BLM_filter, list):
                 BLM_filter = [BLM_filter]
             for f in BLM_filter:
-                self.data = self.data.filter(regex=f, axis='columns')
+                self.df = self.df.filter(regex=f, axis='columns')
         self.meta = self._get_metadata(meta)
 
         # Dynamically add beam meta fetching methods
@@ -77,11 +77,11 @@ class BLMData:
                 return_raw is True, a tuple containing timestamp and data
                 arrays.
         """
-        t1 = self.data.index.get_level_values('timestamp')[0]
+        t1 = self.df.index.get_level_values('timestamp')[0]
         t2 = None
         # key, timeseries = BEAM_META[v]
         if timeseries:
-            t2 = self.data.index.get_level_values('timestamp')[-1]
+            t2 = self.df.index.get_level_values('timestamp')[-1]
         try:
             v = v.format(**kwargs)
         except KeyError as e:
@@ -109,7 +109,7 @@ class BLMData:
         if BLM_max is None:
             BLM_max = PRIMARY_BLM_7[1] + PRIMARY_BLM_7[2]
 
-        maxes = self.data.groupby('mode')[BLM_max].idxmax()
+        maxes = self.df.groupby('mode')[BLM_max].idxmax()
         # tuples are (beam_mode, timestamp)
         # only keep timestamp
         return maxes.applymap(lambda x: x[1])
@@ -148,7 +148,7 @@ class BLMData:
             DataFrame: DataFrame with blms as index and "dcum" & "type" as
                 columns.
         """
-        blms = set(self.data.columns)
+        blms = set(self.df.columns)
         with_meta = list(blms & set(meta.index.tolist()))
         without_meta = list(blms - set(meta.index.tolist()))
         with_meta_df = meta.loc[with_meta]
@@ -187,7 +187,7 @@ class BLMData:
         if datetime is None and row is None:
             raise ValueError('Provide either "datetime", or "row".')
         if row is None:
-            row = row_from_time(self.data, datetime,
+            row = row_from_time(self.df, datetime,
                                 flatten=True, method='nearest')
         if datetime is None:
             try:
@@ -229,13 +229,13 @@ class BLMData:
             raise OSError(f'File {file_path} already exists.')
 
         # remove BLM names from columns due to hdf header size limitation.
-        save_data = self.data.copy()
+        save_data = self.df.copy()
         save_data.columns = range(save_data.shape[1])
         save_data.to_hdf(file_path, key='data', format='table')
         self.meta.to_hdf(file_path, key='meta', format='table', append=True)
         # write columns real columns name in separate file.
         with open(file_path.with_suffix('.csv'), 'w') as fp:
-            fp.write('\n'.join(self.data.columns))
+            fp.write('\n'.join(self.df.columns))
 
     def plot(self, data=None, title=None, **kwargs):
         """Plots a waterfall plot of the data. Note, will produce multiple
@@ -249,7 +249,7 @@ class BLMData:
         """
         # TODO: fix this format mode thing
         if data is None:
-            data = self.data
+            data = self.df
         if 'mode' in data.index.names:
             out = {}
             for mode, d in data.groupby('mode'):
@@ -275,7 +275,7 @@ class BLMData:
         '''
         if isinstance(key, int):
             # get row time from data index.
-            time = self.data.index[key][-1]
+            time = self.df.index[key][-1]
         else:
             # assume epoch or to_datetime str.
             time = sanitize_t(key)

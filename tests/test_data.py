@@ -11,7 +11,7 @@ BLM_DATA = LOADER.from_fill(7247,
 class TestBLMData(unittest.TestCase):
 
     def test_init(self):
-        self.assertEqual(BLM_DATA.data.shape, (1687, 3595))
+        self.assertEqual(BLM_DATA.df.shape, (1687, 3595))
 
     def test_find_max(self):
         self.assertEqual(BLM_DATA.find_max().shape, (1, 8))
@@ -53,9 +53,9 @@ class TestBLMData(unittest.TestCase):
     def test_lossmap(self):
         LM = BLM_DATA.loss_map(datetime='2018-10-02 10:14:15.771000147+02:00',
                                context={'foo': 'bar'},
-                               background=BLM_DATA.data.mean())
-        self.assertEqual(LM.data.shape, (3595, 3))
-        self.assertEqual(LM.data['data'].mean(), 2.794673741307371e-07)
+                               background=BLM_DATA.df.mean())
+        self.assertEqual(LM.df.shape, (3595, 3))
+        self.assertEqual(LM.df['data'].mean(), 2.794673741307371e-07)
         self.assertEqual(LM.context, {'foo': 'bar'})
-        self.assertEqual(LM.get_background().data['data'].mean(),
+        self.assertEqual(LM.get_background().df['data'].mean(),
                          3.8321408915168095e-07)

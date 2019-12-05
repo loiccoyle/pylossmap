@@ -13,15 +13,15 @@ class TestLoader(unittest.TestCase):
         t1 = pd.to_datetime('2018-06-20 00:00:00').tz_localize('Europe/Zurich')
         t2 = pd.to_datetime('2018-06-20 01:00:00').tz_localize('Europe/Zurich')
         BLM_data = LOADER.from_datetimes(t1, t2)
-        self.assertEqual(BLM_data.data.shape, (3600, 3595))
+        self.assertEqual(BLM_data.df.shape, (3600, 3595))
 
     def test_from_fill(self):
         BLM_data = LOADER.from_fill(7247, beam_modes=['INJPROT'])
-        self.assertEqual(BLM_data.data.shape, (1906, 3595))
+        self.assertEqual(BLM_data.df.shape, (1906, 3595))
 
     def test_bg_from_INJPROT(self):
         bg_data = LOADER.bg_from_INJPROT(7247)
-        self.assertEqual(bg_data.data.shape, (403, 3595))
+        self.assertEqual(bg_data.df.shape, (403, 3595))
 
     def test_iter_from_ADT(self):
         t1 = pd.to_datetime('2018-04-08 23:00:00').tz_localize('Europe/Zurich')
@@ -35,14 +35,14 @@ class TestLoader(unittest.TestCase):
                                         yield_background=True,
                                         include=['trigger', 'amp', 'length', 'gate'])
         for (trigger, trigger_bg), (trigger_shape, trigger_bg_shape) in zip(adt_iter, ITER_ADT_SHAPE):
-            self.assertEqual(trigger.data.shape, trigger_shape)
-            self.assertEqual(trigger_bg.data.shape, trigger_bg_shape)
+            self.assertEqual(trigger.df.shape, trigger_shape)
+            self.assertEqual(trigger_bg.df.shape, trigger_bg_shape)
             # TODO: add check on context
 
     def test_bg_from_ADT_trigger(self):
         t1 = pd.to_datetime('2018-04-08 22:00:00').tz_localize('Europe/Zurich')
         bg_data = LOADER.bg_from_ADT_trigger(t1)
-        self.assertEqual(bg_data.data.shape, (170, 3595))
+        self.assertEqual(bg_data.df.shape, (170, 3595))
 
     def test_logging_header(self):
         t1 = pd.to_datetime('2018-04-08 22:00:00').tz_localize('Europe/Zurich')

@@ -30,7 +30,7 @@ class LossMap:
         self._logger = logging.getLogger(__name__)
         self._meta_cols = ['type', 'dcum']
         self.datetime = datetime
-        self.data = data
+        self.df = data
         self._background = None
         self.context = context
 
@@ -77,7 +77,7 @@ class LossMap:
 
     @property
     def meta(self):
-        return self.data[self._meta_cols]
+        return self.df[self._meta_cols]
 
     @staticmethod
     def _sanitize_inp(inp, prepare=None, check=None):
@@ -137,7 +137,7 @@ class LossMap:
                 regex string.
         """
         ret = self.copy()
-        ret.data = ret.data.filter(regex=reg, axis='index')
+        ret.df = ret.df.filter(regex=reg, axis='index')
         return ret
 
     def normalize(self, wrt='max'):
@@ -150,11 +150,11 @@ class LossMap:
             LossMap: LossMap instance normalized.
         """
         if wrt == 'max':
-            normalizer = self.data['data'].max()
-        elif wrt in self.data.keys():
-            normalizer = self.data['data'][wrt]
+            normalizer = self.df['data'].max()
+        elif wrt in self.df.keys():
+            normalizer = self.df['data'][wrt]
         ret = self.copy()
-        ret.data['data'] /= normalizer
+        ret.df['data'] /= normalizer
         return ret
 
     def clean_background(self):
@@ -166,7 +166,7 @@ class LossMap:
         if self._background is None:
             raise ValueError('background not set, use self.set_background.')
         ret = self.copy()
-        ret.data['data'] = ret.data['data'] - ret._background.data['data']
+        ret.df['data'] = ret.df['data'] - ret._background.df['data']
         return ret
 
     def DS(self):
@@ -292,7 +292,7 @@ class LossMap:
             raise ValueError(f'"{types}" must be subset of {allowed}.')
 
         ret = self.copy()
-        ret.data = self.data[self.data['type'].isin(types)]
+        ret.df = self.df[self.df['type'].isin(types)]
         return ret
 
     # def TCP_plane(self, beam='auto'):
@@ -324,9 +324,9 @@ class LossMap:
         Returns:
             float: requested beam summed/total losses.
         """
-        b = self.beam(beam).data['data']
+        b = self.beam(beam).df['data']
         b = b.sum()
-        return b/self.data['data'].sum()
+        return b/self.df['data'].sum()
 
     def cleaning(self, IR=7):
         '''Cleaning efficiency ?
@@ -338,16 +338,16 @@ class LossMap:
         Returns:
             float: cleaning efficiency
         '''
-        return (self.IR(IR).DS().data['data'].max() /
-                self.IR(IR).TCP().data['data'].max())
+        return (self.IR(IR).DS().df['data'].max() /
+                self.IR(IR).TCP().df['data'].max())
 
     def __getitem__(self, key):
         ret = self.copy()
-        ret.data = ret.data.__getitem__(key)
+        ret.df = ret.df.__getitem__(key)
         return ret
 
     def __setitem__(self, key, value):
-        self.data.__setitem__(key, value)
+        self.df.__setitem__(key, value)
 
     # def __add__(self, other):
     #     ret = self.copy()
@@ -360,14 +360,14 @@ class LossMap:
     def __repr__(self):
         bg_str = ""
         if self._background is not None:
-            bg_str = f"\n\tbackground:\n{self._background.data.__repr__()}"
+            bg_str = f"\n\tbackground:\n{self._background.df.__repr__()}"
 
         return f"LossMap:\n\
-\tdata:\n{self.data.__repr__()}" + bg_str
+\tdata:\n{self.df.__repr__()}" + bg_str
 
     def plot(self, data=None, **kwargs):
         if data is None:
-            data = self.data['data']
+            data = self.df['data']
         return plot_loss_map(data=data,
                              meta=self.meta,
                              **kwargs)
@@ -435,8 +435,8 @@ class CollLossMap(LossMap):
         if plane not in ['H', 'V']:
             raise ValueError('"plane" must be either "H" or "V".')
 
-        weighted = self.data['data'] * self.data[f'{plane}_weight']
-        return weighted.sum() / self.data[f'{plane}_weight'].sum()
+        weighted = self.df['data'] * self.df[f'{plane}_weight']
+        return weighted.sum() / self.df[f'{plane}_weight'].sum()
 
     def plane(self, plane):
         # TODO: add SKEW?
@@ -446,5 +446,5 @@ class CollLossMap(LossMap):
             raise ValueError('"plane" must be either "H" or "V".')
 
         ret = self.copy()
-        ret.data[ret.data['coll_angle'] == plane_angle[plane]]
+        ret.df[ret.df['coll_angle'] == plane_angle[plane]]
         return ret
