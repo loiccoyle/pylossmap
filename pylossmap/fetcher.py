@@ -439,7 +439,7 @@ class BLMDataFetcher:
         dcum_df = files_to_df(self.__dcum_folder)
         meta_time_ind = dcum_df.index.get_loc(t, method='ffill')
         meta_time = dcum_df.index[meta_time_ind]
-        self._logger.info(f'Using BLM metadata from {meta_time}.')
+        self._logger.debug(f'Using BLM metadata from {meta_time}.')
         dcum_file = self.__dcum_folder / dcum_df.loc[meta_time].values[0]
         meta = pd.read_csv(dcum_file, index_col=0)
         meta['type'] = meta.apply(lambda x: name_to_type(x['blm']),
