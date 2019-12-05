@@ -49,7 +49,7 @@ This class handles the BLM data, the main methods are:
 
 * `plot`: creates a waterfall plot of the BLM data.
 * `iter_max`: iterates on index of the max values of the desired BLMS, defaults to the primary IR 7 BLMs.
-* `get_intensity`,`get_filling_scheme`,`get_number_bunches`,`get_energy`: fetches some additional beam information for the current time range.
+* `fetch_intensity`,`fetch_filling_scheme`,`fetch_number_bunches`,`fetch_energy`: fetches some additional beam information for the current time range.
 
 You can access the raw data through the `data` attribute.
 
@@ -64,5 +64,5 @@ Some main methods are:
 * `set_background`: to set another LossMap instance as the background signal.
 * `clean_background`: to substract the background.
 * `normalize`: to normalize the data to the max value, or the signal of the provided BLM.
-* `get_intensity`,`get_filling_scheme`,`get_number_bunches`,`get_energy`: fetches some additional beam information for the current timestamp.
+* `fetch_intensity`,`fetch_filling_scheme`,`fetch_number_bunches`,`fetch_energy`: fetches some additional beam information for the current timestamp.
 * various methods for filtering based on `cell`, `IR`, `side`, collimator `type`, `beam`, ...
