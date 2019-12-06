@@ -125,19 +125,24 @@ class LossMap:
         """
         return copy.deepcopy(self)
 
-    def filter(self, reg):
+    def filter(self, reg, mask=False):
         """Applies a regexp filter to the BLM names a returns a filters LossMap
         instance.
 
         Args:
             reg (str): regexp string.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance containing the BLMs which matched the
                 regex string.
         """
-        ret = self.copy()
-        ret.df = ret.df.filter(regex=reg, axis='index')
+        if not mask:
+            ret = self.copy()
+            ret.df = ret.df.filter(regex=reg, axis='index')
+        else:
+            ret = self.df.index.str.contains(reg, regex=True)
         return ret
 
     def normalize(self, wrt='max'):
@@ -169,30 +174,42 @@ class LossMap:
         ret.df['data'] = ret.df['data'] - ret._background.df['data']
         return ret
 
-    def DS(self):
+    def DS(self, mask=False):
         """Selects the BLMs in the dispersion supperssor region.
+
+        Args:
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance containing the dispersion suppressors
                 BLMs.
         """
-        return self.filter(rf'BLMQ[IE]\.(0[7-9]|10|11)[RL][37]')
+        return self.filter(rf'BLMQ[IE]\.(0[7-9]|10|11)[RL][37]', mask=mask)
 
-    def IR(self, *IRs):
+    def IR(self, *IRs, mask=False):
         """Filters the BLMs based on the IR(s).
 
         Args:
             *IRs (int): IR(s) of interests.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance with the filtered IR(s).
         """
         IR = self._sanitize_inp(IRs,
                                 check={1, 2, 3, 4, 5, 6, 7, 8})
-        return self.filter(rf'\.\d\d[LR]({IR})')
+        return self.filter(rf'\.\d\d[LR]({IR})', mask=mask)
 
-    def TCP(self, HVS=False):
+    def TCP(self, HVS=False, mask=False):
         """Selects only the TCP BLMs.
+
+        Args:
+            HVS (bool, optional): If True will filter for the BLM of
+                Horizontal, Vertical and Skew collimators.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance containing the TCP BLMs.
@@ -201,56 +218,76 @@ class LossMap:
             pattern = r'BLMTI.*TCP\.'
         else:
             pattern = r'TCP\.'
-        return self.filter(pattern)
+        return self.filter(pattern, mask=mask)
 
-    def TCS(self):
+    def TCS(self, mask=False):
         """Selects only the TCS BLMs.
 
+        Args:
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
+
         Returns:
             LossMap: LossMap instance containing the TCS BLMs.
         """
-        return self.filter(r'TCS[GP][M]?\.')
+        return self.filter(r'TCS[GP][M]?\.', mask=mask)
 
-    def TCL(self):
+    def TCL(self, mask=False):
         """Selects only the TCL BLMs.
 
+        Args:
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
+
         Returns:
             LossMap: LossMap instance containing the TCS BLMs.
         """
-        return self.filter(r'TCL[A]?\.')
+        return self.filter(r'TCL[A]?\.', mask=mask)
 
-    def TCTP(self):
+    def TCTP(self, mask=False):
         """Selects only the TCTP BLMs.
+
+        Args:
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance containing the TCTP BLMs.
         """
-        return self.filter(r'TCTP[HV]\.')
+        return self.filter(r'TCTP[HV]\.', mask=mask)
 
-    def TCLI(self):
+    def TCLI(self, mask=False):
         """Selects only the TCLI BLMs.
+
+        Args:
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance containing the TCLI BLMs.
         """
-        return self.filter(r'TCLI[AB]\.')
+        return self.filter(r'TCLI[AB]\.', mask=mask)
 
-    def side(self, RL):
+    def side(self, RL, mask=False):
         """Filters the BLMs based on their side.
 
         Args:
             RL (str): Either "R" or "L" or "RL".
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance with the filtered BLMs.
         """
-        return self.filter(rf'\.\d\d[{RL}][1-8]')
+        return self.filter(rf'\.\d\d[{RL}][1-8]', mask=mask)
 
-    def cell(self, *cells):
+    def cell(self, *cells, mask=False):
         """Filters the BLMs based on their cell number(s).
 
         Args:
             *cells (int): cells of interest.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance with the filtered cells.
@@ -261,13 +298,15 @@ class LossMap:
 
         cells = self._sanitize_inp(cells,
                                    prepare=pad)
-        return self.filter(rf'\.({cells})[RL][1-8]')
+        return self.filter(rf'\.({cells})[RL][1-8]', mask=mask)
 
-    def beam(self, *beams):
+    def beam(self, *beams, mask=False):
         """Filters the BLMs based on the beam(s).
 
         Args:
             *beam (int): Beams of interest, subset of {0,1,2}.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance with the filtered beam(s).
@@ -275,14 +314,16 @@ class LossMap:
         beam = self._sanitize_inp(beams,
                                   check={0, 1, 2},
                                   prepare=lambda x: str(int(x)))
-        return self.filter(rf'B({beam})')
+        return self.filter(rf'B({beam})', mask=mask)
 
-    def type(self, *types):
+    def type(self, *types, mask=False):
         '''Gets the BLM for the requested blm types.
 
         Args:
             types (str): string of the type(s) of interest, subset of
                 {cold, warm, coll, xrp}.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
 
         Returns:
             LossMap: LossMap instance with the desired BLM types.
@@ -291,8 +332,11 @@ class LossMap:
         if not set(types) <= allowed:
             raise ValueError(f'"{types}" must be subset of {allowed}.')
 
-        ret = self.copy()
-        ret.df = self.df[self.df['type'].isin(types)]
+        if not mask:
+            ret = self.copy()
+            ret.df = self.df[self.df['type'].isin(types)]
+        else:
+            ret = self.df['type'].isin(types)
         return ret
 
     # def TCP_plane(self, beam='auto'):
