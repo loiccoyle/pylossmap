@@ -135,8 +135,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the BLMs which matched the
-                regex string.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the BLMs which matched the regex string.
         """
         if not mask:
             ret = self.copy()
@@ -175,15 +175,15 @@ class LossMap:
         return ret
 
     def DS(self, mask=False):
-        """Selects the BLMs in the dispersion supperssor region.
+        """Selects the BLMs in the dispersion suppressor region.
 
         Args:
             mask (bool, optional): if True will return a boolean mask array,
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the dispersion suppressors
-                BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the dispersion suppressors BLMs.
         """
         return self.filter(rf'BLMQ[IE]\.(0[7-9]|10|11)[RL][37]', mask=mask)
 
@@ -196,7 +196,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance with the filtered IR(s).
+            LossMap or boolean array: LossMap instance or boolean mask array
+                with the filtered IR(s).
         """
         IR = self._sanitize_inp(IRs,
                                 check={1, 2, 3, 4, 5, 6, 7, 8})
@@ -212,7 +213,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the TCP BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the TCP BLMs.
         """
         if HVS:
             pattern = r'BLMTI.*TCP\.'
@@ -228,7 +230,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the TCS BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the TCS BLMs.
         """
         return self.filter(r'TCS[GP][M]?\.', mask=mask)
 
@@ -240,7 +243,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the TCS BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the TCS BLMs.
         """
         return self.filter(r'TCL[A]?\.', mask=mask)
 
@@ -252,7 +256,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the TCTP BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the TCTP BLMs.
         """
         return self.filter(r'TCTP[HV]\.', mask=mask)
 
@@ -264,7 +269,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance containing the TCLI BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the TCLI BLMs.
         """
         return self.filter(r'TCLI[AB]\.', mask=mask)
 
@@ -277,7 +283,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance with the filtered BLMs.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the filtered BLMs.
         """
         return self.filter(rf'\.\d\d[{RL}][1-8]', mask=mask)
 
@@ -290,7 +297,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance with the filtered cells.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the filtered cells.
         """
 
         def pad(x):
@@ -309,7 +317,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance with the filtered beam(s).
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the filtered beam(s).
         """
         beam = self._sanitize_inp(beams,
                                   check={0, 1, 2},
@@ -326,7 +335,8 @@ class LossMap:
                 otherwise will return a filtered LossMap instance.
 
         Returns:
-            LossMap: LossMap instance with the desired BLM types.
+            LossMap or boolean array: LossMap instance or boolean mask array
+                containing the desired BLM types.
         '''
         allowed = {'cold', 'warm', 'coll', 'xrp'}
         if not set(types) <= allowed:
