@@ -526,6 +526,7 @@ class BLMDataFetcher:
                 if len(columns) == data[1].shape[1]:
                     self._logger.debug(f'Using header from self.{fetcher.__name__}.')
                     self.__header = columns
+                    break
 
         if self.__header is None:
             self._logger.error("No compatible header found.")

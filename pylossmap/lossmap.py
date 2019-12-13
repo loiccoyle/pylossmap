@@ -1,4 +1,5 @@
 import copy
+import warnings
 import logging
 import pandas as pd
 
@@ -10,11 +11,13 @@ from .utils import coll_meta
 from .utils import angle_convert
 from .plotting import plot_loss_map
 
+# index str contains userwarning ignore
+warnings.filterwarnings("ignore", 'This pattern has match groups')
+
 
 class LossMap:
     def __init__(self,
                  data,
-                 background=None,
                  datetime=None,
                  context=None,
                  ):
@@ -123,6 +126,12 @@ class LossMap:
         Returns:
             LossMap: Copied LossMap instance.
         """
+        # out = LossMap(data=self.df,
+        #               datetime=self.datetime,
+        #               context=self.context)
+        # if self._background is not None:
+        #     out.set_background(self._background)
+        # return out
         return copy.deepcopy(self)
 
     def filter(self, reg, mask=False):
@@ -138,6 +147,7 @@ class LossMap:
             LossMap or boolean array: LossMap instance or boolean mask array
                 containing the BLMs which matched the regex string.
         """
+
         if not mask:
             ret = self.copy()
             ret.df = ret.df.filter(regex=reg, axis='index')

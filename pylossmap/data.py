@@ -193,8 +193,11 @@ class BLMData:
             try:
                 # try to get a datetime from the name of the row being passed.
                 # usually (beam_mode, datetime)
-                if isinstance(row.name[1], pd.Datetime):
+                if isinstance(row.name[1], pd.Timestamp):
                     datetime = row.name[1]
+
+                elif isinstance(row.name[0], pd.Timestamp):
+                    datetime = row.name[0]
             except (IndexError, TypeError):
                 pass
         else:
