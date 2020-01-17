@@ -13,6 +13,10 @@ from .lossmap import LossMap
 from .plotting import plot_waterfall
 from .timber_vars import PRIMARY_BLM_7
 
+# TODO: it would be quite cool to have the lossmap filtering and processing
+# methods also work for the BLMData object. Maybe the LossMap object should be
+# merged with the BLMData object ?
+
 
 class BLMData:
     def __init__(self,
@@ -138,7 +142,7 @@ class BLMData:
         return ((r[0], r[1]['blm'].tolist()) for r in maxes)
 
     def _get_metadata(self, meta):
-        """Gets the coords and type for the blms in the "data" DataFrame, for blms
+        """Gets the coords and type for the blms in the "df" DataFrame, for blms
         not found in meta, sets the type to "other" and coord to None.
 
         Args:
@@ -168,14 +172,14 @@ class BLMData:
         """Creates a LossMap instance.
 
         Args:
-            datetime (Datetime, optional): If provided, is used to find a
-                desired row in the data which corresponds to datetime.
+            datetime (Datetime, optional): If provided, is used to find the
+                row in the data closest to datetime.
             row (Series, optional): Row of data for which to create the LossMap
                 instance.
             context (optional): if None, will use self.context.
             background (Series, optional): if provided will create a LossMap
-                instance for the background and will link it to the data's
-                LossMap.
+                instance for the background and set is as the background of the
+                returned LossMap instance.
             **kwargs: passed to LossMap.__init__.
 
         Returns:
@@ -236,9 +240,11 @@ class BLMData:
         save_data.columns = range(save_data.shape[1])
         save_data.to_hdf(file_path, key='data', format='table')
         self.meta.to_hdf(file_path, key='meta', format='table', append=True)
-        # write columns real columns name in separate file.
-        with open(file_path.with_suffix('.csv'), 'w') as fp:
-            fp.write('\n'.join(self.df.columns))
+        pd.DataFrame(self.df.columns).to_hdf(file_path, key='header',
+                                             format='table', append=True)
+        # # write columns real columns name in separate file.
+        # with open(file_path.with_suffix('.csv'), 'w') as fp:
+        #     fp.write('\n'.join(self.df.columns))
 
     def plot(self, data=None, title=None, **kwargs):
         """Plots a waterfall plot of the data. Note, will produce multiple
@@ -303,8 +309,10 @@ def load(file_path, **kwargs):
 
     data = pd.read_hdf(file_path, 'data')
     meta = pd.read_hdf(file_path, 'meta')
-    # read real columns from csv file & replace fake columns
-    with open(file_path.with_suffix('.csv'), 'r') as fp:
-        columns = fp.readlines()
-    data.columns = [c.rstrip() for c in columns]
+    header = pd.read_hdf(file_path, 'header')
+    header = header[0].tolist()
+    # # read real columns from csv file & replace fake columns
+    # with open(file_path.with_suffix('.csv'), 'r') as fp:
+    #     columns = fp.readlines()
+    data.columns = [c.rstrip() for c in header]
     return BLMData(data, meta, **kwargs)
