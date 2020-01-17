@@ -19,13 +19,16 @@ from .utils import files_to_df
 from .blm_type_map import name_to_type
 
 
+# TODO: fix the progress bar, add return raw option.
+
+
 class BLMDataFetcher:
     def __init__(self,
                  d_t='30M',
                  BLM_var='LHC.BLMI:LOSS_RS09',
                  pbar=True,
                  mute=False):
-        """This class handles the fetching and loading of loss map data.
+        """This class handles the fetching and loading of BLM data.
         It will query the timber/CALS db for the data and metadata, figure out
         and load the appropriate BLM type & coord mapping.
 
@@ -317,7 +320,7 @@ class BLMDataFetcher:
                 element of "include" and value a function returning a bool.
                 Example:
                 conditions={'amp': lambda x: x > 0.6} will only return data for
-                ADT triggers with an excitation amplitude > 0.6. Mutliple
+                ADT triggers with an excitation amplitude > 0.6. Multiple
                 condition will be combined with AND logic.
 
         Yields:
@@ -428,7 +431,7 @@ class BLMDataFetcher:
         yield end
 
     def fetch_meta(self, t):
-        """Gets the metadata corresponding to the requested timestamp.
+        """Gets the metadata (dcum and type) corresponding to the requested timestamp.
 
         Args:
             t (Datetime): Time of data.
