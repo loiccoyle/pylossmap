@@ -290,6 +290,12 @@ class BLMData:
             time = sanitize_t(key)
         return self.loss_map(datetime=time)
 
+    def __repr__(self):
+        out = 'df:\n' + self.df.__repr__() + '\nmeta:\n' + self.meta.__repr__()
+        if self.context is not None:
+            out += '\ncontext:\n' + self.context.__repr__()
+        return out
+
 
 def load(file_path, **kwargs):
     """Load the data from a hdf file and create a LossMapData instance.
