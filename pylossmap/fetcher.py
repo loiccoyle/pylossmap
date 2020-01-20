@@ -95,27 +95,49 @@ class BLMDataFetcher:
             fill1 = fill_from_time(t1, fuzzy_t='24H')
             fill2 = fill_from_time(t2, fuzzy_t='24H')
 
-        if fill1 != fill2:
-            # TODO: implement this.
-            raise ValueError('Fetch cannot cross fill boundaries... yet...')
         # TODO: investigate this ... why doesn't it find ...
         if fill1 is None:
             raise ValueError(f'Unable to find fill for {t1}.')
+        if fill2 is None:
+            raise ValueError(f'Unable to find fill for {t2}.')
+        if fill1 != fill2:
+            fills = range(fill1['fillNumber'], fill2['fillNumber'])
+        else:
+            fills = [fill1['fillNumber']]
+        data_dfs = []
+        fill_bm_dfs = []
+        for fill in fills:
+            if len(fills) > 1:
+                # case where multiple fills
+                fill_data = DB.getLHCFillData(fill)
+            else:
+                # case when fill1 == fill2
+                fill_data = fill1
+            fill_bm_df = beammode_to_df(fill_data['beamModes'])
+            fill_bm_df_mask = ((fill_bm_df >= t1).any() &
+                               (fill_bm_df <= t2).any())
+            fill_bm_df = fill_bm_df.loc[:, fill_bm_df_mask]
+            fill_bm_df = fill_bm_df.applymap(lambda x: np.where(x < t1, t1,
+                                                                x))
+            fill_bm_df = fill_bm_df.applymap(lambda x: np.where(x > t2, t2,
+                                                                x))
+            data_dfs.append(self._fetch_data_bm(fill_bm_df))
+            # flip the bm timing info to be consistant with the data's
+            # structure
+            fill_bm_dfs.append(fill_bm_df.T)
 
-        bm_df = beammode_to_df(fill1['beamModes'])
-        keep_mask = np.logical_and((bm_df >= t1).any(),
-                                   (bm_df <= t2).any())
-        keep_bm_df = bm_df.loc[:, keep_mask]
-        keep_bm_df = keep_bm_df.applymap(lambda x: np.where(x < t1, t1, x))
-        keep_bm_df = keep_bm_df.applymap(lambda x: np.where(x > t2, t2, x))
+        # concat all the fill data and beam mode timings together and add the
+        # fill number index level
+        data = pd.concat(data_dfs, keys=fills, names=['fill_number'],
+                         sort=False)
+        fill_bm_df = pd.concat(fill_bm_dfs, keys=fills, names=['fill_number'],
+                               sort=False)
+
         if 'context' not in kwargs:
-            kwargs['context'] = keep_bm_df
-
-        data = self._fetch_data_bm(keep_bm_df)
+            kwargs['context'] = fill_bm_df
         if data is None:
             raise ValueError('No BLM data found.')
-        BLM_data = BLMData(data, meta, **kwargs)
-        return BLM_data
+        return BLMData(data, meta, **kwargs)
 
     def from_fill(self,
                   fill_number,
