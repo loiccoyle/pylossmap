@@ -236,12 +236,17 @@ class BLMData:
             raise OSError(f'File {file_path} already exists.')
 
         # remove BLM names from columns due to hdf header size limitation.
-        save_data = self.df.copy()
-        save_data.columns = range(save_data.shape[1])
-        save_data.to_hdf(file_path, key='data', format='table')
+        # save_data = self.df.copy()
+        header = self.df.columns
+        # replace real header with numbers to not have problem saving large
+        # header to hdf
+        self.df.columns = range(self.df.shape[1])
+        self.df.to_hdf(file_path, key='data', format='table')
         self.meta.to_hdf(file_path, key='meta', format='table', append=True)
-        pd.DataFrame(self.df.columns).to_hdf(file_path, key='header',
-                                             format='table', append=True)
+        pd.DataFrame(header).to_hdf(file_path, key='header',
+                                    format='table', append=True)
+        # put real header back
+        self.df.columns = header
         # # write columns real columns name in separate file.
         # with open(file_path.with_suffix('.csv'), 'w') as fp:
         #     fp.write('\n'.join(self.df.columns))
