@@ -19,6 +19,34 @@ from .timber_vars import PRIMARY_BLM_7
 
 
 class BLMData:
+
+    @classmethod
+    def load(cls, file_path, **kwargs):
+        """Load the data from a hdf file and create a BLMData instance.
+
+        Args:
+            file_path (str/path): Path to hdf file from which to load the data.
+
+        Returns:
+            LossMapData: LossMapData instance with the loaded data.
+
+        Raises:
+            FileNotFoundError: If file does not exist.
+        """
+        file_path = Path(file_path).with_suffix('.h5')
+        if not file_path.is_file():
+            raise FileNotFoundError(f'File {file_path} not found.')
+
+        data = pd.read_hdf(file_path, 'data')
+        meta = pd.read_hdf(file_path, 'meta')
+        header = pd.read_hdf(file_path, 'header')
+        header = header[0].tolist()
+        # # read real columns from csv file & replace fake columns
+        # with open(file_path.with_suffix('.csv'), 'r') as fp:
+        #     columns = fp.readlines()
+        data.columns = [c.rstrip() for c in header]
+        return cls(data, meta, **kwargs)
+
     def __init__(self,
                  data,
                  meta,
@@ -238,15 +266,18 @@ class BLMData:
         # remove BLM names from columns due to hdf header size limitation.
         # save_data = self.df.copy()
         header = self.df.columns
-        # replace real header with numbers to not have problem saving large
-        # header to hdf
-        self.df.columns = range(self.df.shape[1])
-        self.df.to_hdf(file_path, key='data', format='table')
-        self.meta.to_hdf(file_path, key='meta', format='table', append=True)
-        pd.DataFrame(header).to_hdf(file_path, key='header',
-                                    format='table', append=True)
-        # put real header back
-        self.df.columns = header
+        try:
+            # replace real header with numbers to not have problem saving large
+            # header to hdf
+            self.df.columns = range(self.df.shape[1])
+            self.df.to_hdf(file_path, key='data', format='table')
+            self.meta.to_hdf(file_path, key='meta', format='table',
+                             append=True)
+            pd.DataFrame(header).to_hdf(file_path, key='header',
+                                        format='table', append=True)
+        finally:
+            # put real header back
+            self.df.columns = header
         # # write columns real columns name in separate file.
         # with open(file_path.with_suffix('.csv'), 'w') as fp:
         #     fp.write('\n'.join(self.df.columns))
@@ -300,30 +331,3 @@ class BLMData:
         if self.context is not None:
             out += '\ncontext:\n' + self.context.__repr__()
         return out
-
-
-def load(file_path, **kwargs):
-    """Load the data from a hdf file and create a LossMapData instance.
-
-    Args:
-        file_path (str/path): Path to hdf file from which to load the data.
-
-    Returns:
-        LossMapData: LossMapData instance with the loaded data.
-
-    Raises:
-        FileNotFoundError: If file does not exist.
-    """
-    file_path = Path(file_path).with_suffix('.h5')
-    if not file_path.is_file():
-        raise FileNotFoundError(f'File {file_path} not found.')
-
-    data = pd.read_hdf(file_path, 'data')
-    meta = pd.read_hdf(file_path, 'meta')
-    header = pd.read_hdf(file_path, 'header')
-    header = header[0].tolist()
-    # # read real columns from csv file & replace fake columns
-    # with open(file_path.with_suffix('.csv'), 'r') as fp:
-    #     columns = fp.readlines()
-    data.columns = [c.rstrip() for c in header]
-    return BLMData(data, meta, **kwargs)
