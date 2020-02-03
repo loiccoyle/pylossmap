@@ -273,6 +273,28 @@ def files_to_df(folder):
         .sort_index()
 
 
+def no_limit_timber_get(variables, t1, t2):
+    '''Hakcy bypass of the timber single quey limit.
+    '''
+    t1 = sanitize_t(t1)
+    t2 = sanitize_t(t2)
+
+    if not isinstance(variables, list):
+        variables = [variables]
+
+    try:
+        out = DB.get(variables, t1, t2)
+    except Exception:
+        t12 = t1 + (t2 - t1)/2
+        out1 = no_limit_timber_get(variables, t1, t12)
+        out2 = no_limit_timber_get(variables, t12, t2)
+        out = {}
+        for k in variables:
+            out[k] = (np.hstack([out1[k][0], out2[k][0]]),
+                      np.vstack([out1[k][1], out2[k][1]]))
+    return out
+
+
 # Helper class to handle wether to display the progress bar
 class PBar:
     use_tqdm = True
