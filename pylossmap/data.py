@@ -318,9 +318,9 @@ class BLMData:
         Returns:
             LossMap: LossMap instance with the desired BLM data.
         '''
-        if isinstance(key, int):
+        if isinstance(key, int) and key < self.df.size:
             # get row time from data index.
-            time = self.df.index[key][-1]
+            time = self.df.index.get_level_values('timestamp')[key]
         else:
             # assume epoch or to_datetime str.
             time = sanitize_t(key)
