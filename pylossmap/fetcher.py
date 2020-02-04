@@ -50,6 +50,8 @@ class BLMDataFetcher:
         self.__dcum_folder = Path(__file__).parent / 'metadata' / 'dcum'
         self.__manual_headers_folder = (Path(__file__).parent / 'metadata' /
                                         'headers')
+        self.__custom_headers_folder = (Path(__file__).parent / 'metadata' /
+                                        'custom_headers')
 
         self.d_t = d_t
         self.BLM_var = BLM_var
@@ -63,15 +65,13 @@ class BLMDataFetcher:
         self._logger.debug('Clearing headers.')
         self.__header = None
 
-    def from_datetimes(self, t1, t2, keep_headers=False, **kwargs):
+    def from_datetimes(self, t1, t2, **kwargs):
         """Create a BLMData instance with data for the requested interval.
         Note: the time interval cannot cross fill boundaries.
 
         Args:
             t1 (Datetime): interval start.
             t2 (Datetime): interval end.
-            keep_headers (optional, bool): Controls whether to clear the
-                headers before fetching data.
             **kwargs: passed to BLMData.__init__.
 
         Returns:
@@ -81,8 +81,6 @@ class BLMDataFetcher:
             ValueError: if time interval crosses fill boundaries, or no
                 data is found.
         """
-        if not keep_headers:
-            self.clear_header()
         t1 = sanitize_t(t1)
         t2 = sanitize_t(t2)
 
@@ -143,7 +141,6 @@ class BLMDataFetcher:
                   fill_number,
                   beam_modes='all',
                   unique_beam_modes=False,
-                  keep_headers=False,
                   **kwargs):
         """Create a BLMData instance with data for the requested fill and
         beam modes.
@@ -158,8 +155,6 @@ class BLMDataFetcher:
                 --> INJPHYS, INJPHYS_2. Setting unique_beam_modes to True and
                 providing INJPHYS_2 in beam_modes will select the second
                 INJPHYS beam mode.
-            keep_headers (optional, bool): Controls whether to clear the
-                headers before fetching data.
             **kwargs: passed to BLMData.__init__.
 
         Returns:
@@ -168,9 +163,6 @@ class BLMDataFetcher:
         Raises:
             ValueError: if no data is found.
         """
-        if not keep_headers:
-            self.clear_header()
-
         fill, bm = self._fetch_beam_modes(fill_number=fill_number,
                                           subset=beam_modes,
                                           unique_subset=unique_beam_modes)
@@ -218,7 +210,7 @@ class BLMDataFetcher:
             t2 = intensity[~no_beam].index[0]
         else:
             t2 = intensity[no_beam].index[-1]
-        return self.from_datetimes(t1, t2, keep_headers=True)
+        return self.from_datetimes(t1, t2)
 
     def bg_from_ADT_trigger(self,
                             trigger_t,
@@ -308,14 +300,13 @@ class BLMDataFetcher:
         self._logger.debug(f'Background timestamp t1: {t1}')
         self._logger.debug(f'Background timestamp t2: {t2}')
 
-        return self.from_datetimes(t1, t2, keep_headers=True)
+        return self.from_datetimes(t1, t2)
 
     def iter_from_ADT(self, t1, t2,
                       look_forward='5S',
                       look_back='0S',
                       planes=['H', 'V'],
                       beams=[1, 2],
-                      keep_headers=False,
                       yield_background=False,
                       include=['trigger', 'amp', 'length', 'gate'],
                       conditions={},
@@ -331,8 +322,6 @@ class BLMDataFetcher:
                 much data before ADT trigger to fetch.
             planes (list, optional): ADT trigger planes of interest.
             beams (list, optional): ADT trigger beams of itnerest.
-            keep_headers (bool, optional): Controls whether to clear the
-                headers before fetching data.
             yield_background (bool, optional): yield both the BLM data nd the
                 BLM background.
             include (list, optional): which ADT information to fetch, must be
@@ -360,9 +349,6 @@ class BLMDataFetcher:
             raise ValueError('"condition" keys must be in "include" list.')
         if 'trigger' not in include:
             include.append('trigger')
-
-        if not keep_headers:
-            self.clear_header()
 
         t1 = sanitize_t(t1)
         t2 = sanitize_t(t2)
@@ -397,8 +383,7 @@ class BLMDataFetcher:
                 try:
                     BLM_data = self.from_datetimes(t - pd.Timedelta(look_back),
                                                    t + pd.Timedelta(look_forward),
-                                                   context=row,
-                                                   keep_headers=True)
+                                                   context=row)
                     if yield_background:
                         try:
                             BLM_bg = self.bg_from_ADT_trigger(t)
@@ -507,6 +492,16 @@ class BLMDataFetcher:
 
         return blms
 
+    def fetch_custom_header(self, t):
+        custom_header_df = files_to_df(self.__custom_headers_folder)
+        custom_header_ind = custom_header_df.index.get_loc(t, method='ffill')
+        custom_header_file = (self.__custom_headers_folder /
+                              custom_header_df.iloc[custom_header_ind].values[0])
+        with open(custom_header_file) as fp:
+            blms = [line.rstrip() for line in fp]
+
+        return blms
+
     def fetch_timber_header(self, t):
         """Fetch the fill's column names from timber.
 
@@ -534,15 +529,12 @@ class BLMDataFetcher:
         Returns:
             DataFrame: DataFrame containing the BLM data.
         """
-        header_fetchers = [self.fetch_timber_header,
+        header_fetchers = [self.fetch_custom_header,
+                           self.fetch_timber_header,
                            self.fetch_manual_header,
                            self.fetch_logging_header]
 
-        data = self._db.get(self.BLM_var, t1, t2)[self.BLM_var]
-        if data[1].size == 0:
-            return
-
-        if self.__header is None:
+        def get_header():
             for fetcher in header_fetchers:
                 columns = fetcher(t1)
                 self._logger.debug(f'Header from self.{fetcher.__name__}: {len(columns)}.')
@@ -553,12 +545,20 @@ class BLMDataFetcher:
                     self.__header = columns
                     break
 
+        data = self._db.get(self.BLM_var, t1, t2)[self.BLM_var]
+        if data[1].size == 0:
+            return
+
+        if self.__header is None or len(self.__header) != data[1].shape[1]:
+            get_header()
+
         if self.__header is None:
             self._logger.error("No compatible header found.")
 
         data = pd.DataFrame(data[1],
                             index=to_datetime(data[0]),
                             columns=self.__header)
+
         data.index.name = 'timestamp'
         return data
 
