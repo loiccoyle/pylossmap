@@ -55,7 +55,7 @@ class TestBLMData(unittest.TestCase):
                                context={'foo': 'bar'},
                                background=BLM_DATA.df.mean())
         self.assertEqual(LM.df.shape, (3595, 3))
-        self.assertEqual(LM.df['data'].mean(), 2.794673741307371e-07)
+        self.assertEqual(LM.df['data'].mean(), 2.6508673435326844e-07)
         self.assertEqual(LM.context, {'foo': 'bar'})
         self.assertEqual(LM.get_background().df['data'].mean(),
-                         3.8321408915168095e-07)
+                         3.7012022404726227e-07)
