@@ -273,8 +273,8 @@ def files_to_df(folder):
         .sort_index()
 
 
-def no_limit_timber_get(variables, t1, t2):
-    '''Hakcy bypass of the timber single quey limit.
+def no_limit_timber_get(variables, t1, t2, **kwargs):
+    '''Hacky bypass of the timber single query limit.
     '''
     t1 = sanitize_t(t1)
     t2 = sanitize_t(t2)
@@ -283,11 +283,11 @@ def no_limit_timber_get(variables, t1, t2):
         variables = [variables]
 
     try:
-        out = DB.get(variables, t1, t2)
+        out = DB.get(variables, t1, t2, **kwargs)
     except Exception:
         t12 = t1 + (t2 - t1)/2
-        out1 = no_limit_timber_get(variables, t1, t12)
-        out2 = no_limit_timber_get(variables, t12, t2)
+        out1 = no_limit_timber_get(variables, t1, t12, **kwargs)
+        out2 = no_limit_timber_get(variables, t12, t2, **kwargs)
         out = {}
         for k in variables:
             out[k] = (np.hstack([out1[k][0], out2[k][0]]),

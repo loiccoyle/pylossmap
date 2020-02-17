@@ -9,3 +9,4 @@ import logging
 logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 from .fetcher import BLMDataFetcher
+from .data import BLMData

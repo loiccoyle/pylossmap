@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import pandas as pd
+import copy
 
 from pathlib import Path
 from functools import partial
@@ -9,6 +10,7 @@ from .utils import DB
 from .utils import BEAM_META
 from .utils import row_from_time
 from .utils import sanitize_t
+from .blm_filters import Filters
 from .lossmap import LossMap
 from .plotting import plot_waterfall
 from .timber_vars import PRIMARY_BLM_7
@@ -18,7 +20,7 @@ from .timber_vars import PRIMARY_BLM_7
 # merged with the BLMData object ?
 
 
-class BLMData:
+class BLMData(Filters):
 
     @classmethod
     def load(cls, file_path, **kwargs):
@@ -127,6 +129,35 @@ class BLMData:
                 .tz_convert('Europe/Zurich')
             out = out.set_index('timestamp')
         return out
+
+    def copy(self):
+        """Creates a copy of the current instance.
+
+        Returns:
+            BLMData: Copied BLMData instance.
+        """
+        return copy.deepcopy(self)
+
+    def filter(self, reg, mask=False):
+        """Applies a regexp filter to the BLM names a returns a filters LossMap
+        instance.
+
+        Args:
+            reg (str): regexp string.
+            mask (bool, optional): if True will return a boolean mask array,
+                otherwise will return a filtered LossMap instance.
+
+        Returns:
+            BLMData or boolean array: BLMData instance or boolean mask array
+                containing the BLMs which matched the regex string.
+        """
+
+        if not mask:
+            ret = self.copy()
+            ret.df = ret.df.filter(regex=reg, axis='columns')
+        else:
+            ret = self.df.columns.str.contains(reg, regex=True)
+        return ret
 
     def find_max(self, BLM_max=None):
         """Finds the max timestamp and chunk in which the max occured.

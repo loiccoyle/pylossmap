@@ -18,7 +18,6 @@ from .utils import PBar
 from .utils import files_to_df
 from .blm_type_map import name_to_type
 
-
 # TODO: fix the progress bar, add return raw option.
 
 
@@ -170,8 +169,7 @@ class BLMDataFetcher:
         data = self._fetch_data_bm(bm)
         if data is None:
             raise ValueError('No data found.')
-        BLM_data = BLMData(data, meta, context=bm, **kwargs)
-        return BLM_data
+        return BLMData(data, meta, context=bm, **kwargs)
 
     def bg_from_INJPROT(self, fill_number):
         """Fetches BLM data of the INJPROT beam mode when there is no beam.

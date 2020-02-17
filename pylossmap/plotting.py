@@ -1,3 +1,5 @@
+
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from pandas.plotting import register_matplotlib_converters
@@ -119,7 +121,11 @@ def plot_waterfall(data,
     fig, ax = plt.subplots(figsize=figsize)
 
     # make sure the columns are sorted in incresing s coord.
-    data = data[meta.sort_values('dcum').index.tolist()]
+    missing = set(meta.index.tolist()) - set(data.columns)
+    if missing:
+        for m in missing:
+            data[m] = np.nan
+    data = data[meta.loc[data.columns].sort_values('dcum').index.tolist()]
 
     ax.imshow(data,
               aspect='auto',
