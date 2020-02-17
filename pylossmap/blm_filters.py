@@ -181,14 +181,5 @@ class Filters:
         if not set(types) <= allowed:
             raise ValueError(f'"{types}" must be subset of {allowed}.')
 
-        if not mask:
-            ret = self.copy()
-            blm_list = self.meta[self.meta['type'].isin(types)].index.tolist()
-            # TODO: find a better to do this
-            try:
-                ret.df = self.df[blm_list]
-            except KeyError:
-                ret.df = self.df.loc[blm_list]
-        else:
-            ret = self.meta['type'].isin(types)
-        return ret
+        blm_list = self.meta[self.meta['type'].isin(types)].index.tolist()
+        return self._blm_list_filter(blm_list)

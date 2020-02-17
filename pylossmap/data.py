@@ -159,6 +159,12 @@ class BLMData(Filters):
             ret = self.df.columns.str.contains(reg, regex=True)
         return ret
 
+    def _blm_list_filter(self, blm_list):
+        ret = self.copy()
+        blm_list_common = list(set(blm_list) & set(ret.df.columns))
+        ret.df = ret.df[blm_list_common]
+        return ret
+
     def find_max(self, BLM_max=None):
         """Finds the max timestamp and chunk in which the max occured.
 

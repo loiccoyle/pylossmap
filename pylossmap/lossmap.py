@@ -156,6 +156,11 @@ class LossMap(Filters):
             ret = self.df.index.str.contains(reg, regex=True)
         return ret
 
+    def _blm_list_filter(self, blm_list):
+        ret = self.copy()
+        ret.df = ret.df.loc[blm_list]
+        return ret
+
     def normalize(self, wrt='max'):
         """Normalizes the loss map data.
 
