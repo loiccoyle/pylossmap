@@ -13,8 +13,9 @@ def plot_loss_map(data,
                   xtick_labels=None,
                   figsize=(20, 10),
                   title=None,
-                  x_lim=None,
-                  y_lim=[1e-7, 1e1],
+                  xlim=None,
+                  ylim=[1e-7, 1e1],
+                  ax=None,
                   **kwargs):
     '''Plots a loss map from data.
 
@@ -26,8 +27,8 @@ def plot_loss_map(data,
             axis.
         figsize (tuple, optional): figure size in inches.
         title (str, optional): figure title.
-        x_lim (tuple, optional): x axis limits.
-        y_lim (tuple, optional): y axis limits.
+        xlim (tuple, optional): x axis limits.
+        ylim (tuple, optional): y axis limits.
         **kwargs: forwarded to plt.bar.
 
     Returns:
@@ -48,10 +49,14 @@ def plot_loss_map(data,
         except Exception:
             pass
 
-    if x_lim is None:
-        x_lim = [meta['dcum'].min(), meta['dcum'].max()]
+    if xlim is None:
+        xlim = [meta['dcum'].min(), meta['dcum'].max()]
 
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
     for typ in types:
         mask = meta['type'] == typ
         if not mask.any():
@@ -65,12 +70,12 @@ def plot_loss_map(data,
                 **kwargs)
     ax.legend()
 
-    if y_lim is not None:
-        ax.set_ylim(y_lim)
-    if x_lim is not None:
-        # x_lim = [0, meta['coord'].max()]
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    if xlim is not None:
+        # xlim = [0, meta['coord'].max()]
         # meta['coord'].max()
-        ax.set_xlim(x_lim)
+        ax.set_xlim(xlim)
 
     ax.set_yscale('log')
     ax.yaxis.grid(which='both')
@@ -88,7 +93,9 @@ def plot_waterfall(data,
                    meta,
                    title=None,
                    figsize=(20, 10),
-                   min_max_quantile=0.85):
+                   min_max_quantile=0.85,
+                   ax=None,
+                   fill_missing=True):
     """Plots a water plot of the data.
 
     Args:
@@ -114,19 +121,22 @@ def plot_waterfall(data,
               data.index.get_level_values('timestamp')[0]]
     y_lims = mdates.date2num(y_lims)
 
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    if fill_missing:
+        # make sure the columns are sorted in incresing s coord.
+        missing = set(meta.index.tolist()) - set(data.columns)
+        if missing:
+            for m in missing:
+                data[m] = np.nan
+    data = data[meta.loc[data.columns].sort_values('dcum').index.tolist()]
+
     # Set some xaxis to s coord
     x_lims = [0, meta['dcum'].max()]
     extent = [x_lims[0], x_lims[1], y_lims[0], y_lims[1]]
-
-    fig, ax = plt.subplots(figsize=figsize)
-
-    # make sure the columns are sorted in incresing s coord.
-    missing = set(meta.index.tolist()) - set(data.columns)
-    if missing:
-        for m in missing:
-            data[m] = np.nan
-    data = data[meta.loc[data.columns].sort_values('dcum').index.tolist()]
-
     ax.imshow(data,
               aspect='auto',
               extent=extent,

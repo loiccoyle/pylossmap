@@ -1,5 +1,8 @@
 
 class Filters:
+    '''Generic filtering class, make sure to define a self.filter and a
+    self._blm_list_filter.
+    '''
 
     @staticmethod
     def _sanitize_inp(inp, prepare=None, check=None):

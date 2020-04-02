@@ -83,18 +83,6 @@ class LossMap(Filters):
     def meta(self):
         return self.df[self._meta_cols]
 
-    @staticmethod
-    def _sanitize_inp(inp, prepare=None, check=None):
-        if check is not None:
-            if not set(inp) <= check:
-                raise ValueError(f"Input must be subset of {check}.")
-
-        if callable(prepare):
-            inp = map(prepare, inp)
-        else:
-            inp = map(str, inp)
-        return '|'.join(inp)
-
     def set_background(self, LM_bg):
         '''Links the provided background LossMap to this one.
 

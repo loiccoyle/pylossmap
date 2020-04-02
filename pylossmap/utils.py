@@ -11,8 +11,6 @@ from pathlib import Path
 
 from . import timber_vars
 
-DB = pytimber.LoggingDB()
-
 # TODO: Figure out how to get the accelerator mode.
 #                              Timber var,               timeseries
 BEAM_META = {'intensity':      (timber_vars.INTENSITY,   True),
@@ -31,6 +29,23 @@ ADT_META = {
             'length': timber_vars.ADT_LENGTH,
             'trigger': timber_vars.ADT_TRIGGER,
             }
+
+
+def get_timber_db(*args, **kwargs):
+    '''Fetches a pytimber DB insstance.
+    '''
+    global DB
+    if DB is None:
+        try:
+            DB = pytimber.LoggingDB(*args, **kwargs)
+        except (AttributeError, TypeError) as e:
+            print(e)
+            DB = None
+    return DB
+
+
+DB = None
+DB = get_timber_db()
 
 
 def uniquify(iterable):

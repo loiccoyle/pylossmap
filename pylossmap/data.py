@@ -139,7 +139,7 @@ class BLMData(Filters):
         return copy.deepcopy(self)
 
     def filter(self, reg, mask=False):
-        """Applies a regexp filter to the BLM names a returns a filters LossMap
+        """Applies a regexp filter to the BLM names a returns a filtered BLMData
         instance.
 
         Args:

@@ -34,6 +34,9 @@ setup(
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
     ],
+    entry_points={
+        'console_scripts': ['header_maker=pylossmap.header_handler.cli:main']
+        }
 )
 
 __author__ = 'Loic Coyle'
