@@ -20,30 +20,30 @@ class TestUtils(unittest.TestCase):
     def test_fill_from_time(self):
         out = utils.fill_from_time('2018-06-01 00:00:00')
         expected = {'fillNumber': 6748,
-                    'startTime': 1527797940.62,
-                    'endTime': 1527812753.788,
+                    'startTime': 1527797940.31,
+                    'endTime': 1527812752.894,
                     'beamModes': [{'mode': 'SETUP',
-                                   'startTime': 1527799038.5219998,
-                                   'endTime': 1527800145.6739998},
+                                   'startTime': 1527799038.261,
+                                   'endTime': 1527800145.337},
                                   {'mode': 'INJPROT',
-                                   'startTime': 1527800145.676,
-                                   'endTime': 1527807062.758},
+                                   'startTime': 1527800145.338,
+                                   'endTime': 1527807062.379},
                                   {'mode': 'INJPHYS',
-                                   'startTime': 1527807062.7600002,
-                                   'endTime': 1527809628.986},
+                                   'startTime': 1527807062.38,
+                                   'endTime': 1527809628.493},
                                   {'mode': 'NOBEAM',
-                                   'startTime': 1527809628.988,
-                                   'endTime': 1527812751.376},
+                                   'startTime': 1527809628.494,
+                                   'endTime': 1527812750.688},
                                   {'mode': 'CYCLING',
-                                   'startTime': 1527812751.3779998,
-                                   'endTime': 1527812753.788}]}
+                                   'startTime': 1527812750.689,
+                                   'endTime': 1527812752.894}]}
         self.assertEqual(out, expected)
 
     def test_beammode_from_time(self):
         out = utils.beammode_from_time('2018-06-01 00:00:00')
         expected = {'mode': 'INJPROT',
-                    'startTime': 1527800145.676,
-                    'endTime': 1527807062.758}
+                    'startTime': 1527800145.338,
+                    'endTime': 1527807062.379}
         self.assertEqual(out, expected)
 
     def test_beammode_to_df(self):

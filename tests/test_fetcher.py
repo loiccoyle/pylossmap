@@ -17,7 +17,7 @@ class TestLoader(unittest.TestCase):
 
     def test_from_fill(self):
         BLM_data = LOADER.from_fill(7247, beam_modes=['INJPROT'])
-        self.assertEqual(BLM_data.df.shape, (1906, 3595))
+        self.assertEqual(BLM_data.df.shape, (1907, 3595))
 
     def test_bg_from_INJPROT(self):
         bg_data = LOADER.bg_from_INJPROT(7247)

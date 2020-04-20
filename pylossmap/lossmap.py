@@ -1,4 +1,4 @@
-import copy
+# import copy
 import warnings
 import logging
 import pandas as pd
@@ -115,13 +115,13 @@ class LossMap(Filters):
         Returns:
             LossMap: Copied LossMap instance.
         """
-        # out = LossMap(data=self.df,
-        #               datetime=self.datetime,
-        #               context=self.context)
-        # if self._background is not None:
-        #     out.set_background(self._background)
-        # return out
-        return copy.deepcopy(self)
+        out = LossMap(data=self.df,
+                      datetime=self.datetime,
+                      context=self.context)
+        if self._background is not None:
+            out.set_background(self._background)
+        return out
+        # return copy.deepcopy(self)
 
     def filter(self, reg, mask=False):
         """Applies a regexp filter to the BLM names a returns a filters LossMap
