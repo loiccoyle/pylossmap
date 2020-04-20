@@ -13,6 +13,8 @@ class HeaderManager:
     def __init__(self,
                  header_folder=Path(__file__).parents[1] / 'metadata' / 'custom_headers'):
         self.header_folder = header_folder
+        if not self.header_folder.is_dir():
+            raise FileNotFoundError(f'Directory not found: {self.header_folder}')
         self._logger = logging.getLogger(__name__)
 
     # @staticmethod
@@ -59,13 +61,13 @@ class HeaderManager:
                 False.
         """
         t = sanitize_t(t)
-        file = Path(self.header_folder / (t.strftime('%Y_%m_%d_%H_%M_%S%z') +
+        header_file = Path(self.header_folder / (t.strftime('%Y_%m_%d_%H_%M_%S%z') +
                                           '.csv'))
 
-        # print(file)
+        # print(header_file)
         header = '\n'.join(header)
-        if not file.exists() or ignore_existing:
-            with open(file, 'w') as fp:
+        if not header_file.exists() or ignore_existing:
+            with open(header_file, 'w') as fp:
                 fp.write(header)
                 self._logger.info(f"Added {file} header file.")
         else:
@@ -120,3 +122,4 @@ class HeaderManager:
             destination = Path.cwd() / self.header_folder.name
         copytree(self.header_folder, destination)
         self._logger.info(f"Copied {self.header_folder} to {destination}.")
+
