@@ -148,6 +148,7 @@ class HeaderMaker:
             BLM_list = self._fetch_blm_var_list(**kwargs)
 
         if self._n_threads > 1:
+            self._logger.debug('Using threads.')
             with ThreadPool(self._n_threads) as p:
                 out = p.map(lambda x: DB.get(x, self.t1, self.t2), BLM_list)
         else:
@@ -159,7 +160,6 @@ class HeaderMaker:
         for blm, time_data in out.items():
             if time_data[0].size > 0:
                 blm_data[blm.split(':')[0]] = self._clean_get(time_data)
-
             else:
                 self._logger.debug(f'Timber variable {blm} has no data.')
 
