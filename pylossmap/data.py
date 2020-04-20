@@ -136,6 +136,7 @@ class BLMData(Filters):
         Returns:
             BLMData: Copied BLMData instance.
         """
+        # TODO: check if this fails, _thread.RLock...
         return copy.deepcopy(self)
 
     def filter(self, reg, mask=False):

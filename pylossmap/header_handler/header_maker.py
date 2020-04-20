@@ -46,7 +46,9 @@ class HeaderMaker:
                 t2=t2.
             vec_var (str, optional): blm vector numeric timber variable.
             n_jobs (int, optional): number of jobs with which to do the
-                distance matrix calculations
+                distance matrix calculations.
+            n_threads (int, optional): number of threads with which to fetch
+                timber data.
         """
         self._logger = logging.getLogger(__name__)
 
@@ -267,3 +269,4 @@ class HeaderMaker:
                 diff as values.
         '''
         return {b: (series - s).abs().mean() for b, s in single_data.items()}
+

@@ -22,6 +22,16 @@ class HeaderManager:
     #     return file_name.replace('-', ' ').replace(':', ' ').replace(' ', '')
 
     def select(self, t, **kwargs):
+        """Select a header file based on the a given time.
+
+        Args:
+            t (int,float,str): see utils.sanitize_t.
+            **kwargs: passed to pandas get_loc
+
+        Raises:
+            ValueError: if header folder is empty.
+
+        """
         t = sanitize_t(t)
         # this warnings stuff is due to a bug in pandas:
         # https://stackoverflow.com/questions/54854900/workaround-for-pandas-futurewarning-when-sorting-a-datetimeindex
