@@ -198,8 +198,7 @@ class HeaderMaker:
             **kwargs: blm filtering, see self.fetch_single_data.
 
         Returns:
-            pd.DataFrame: as index the columns of the vector numeric data, as
-                columns the blm names and contains the "distance" between each.
+            list: the header, a list of blm names.
         """
         if vec_data is None:
             vec_data = self.fetch_vec()
@@ -207,8 +206,7 @@ class HeaderMaker:
             single_data = self.fetch_single(**kwargs)
 
         d_mat = self.calc_distance_matrix(vec_data, single_data)
-        header = d_mat.idxmin(axis=1).tolist()
-        return header
+        return self._distance_matrix_to_header(d_mat)
 
     def calc_distance_matrix(self, vec_data, single_data):
         """Constructs the distance matrix between the vectonumeric data and the
@@ -227,7 +225,7 @@ class HeaderMaker:
         self._logger.info('Constructing distance matrix.')
         start_t = time.time()
         # calculate the distance matrix
-        col_diff = partial(self.single_column_diff, single_data=single_data)
+        col_diff = partial(self._single_column_diff, single_data=single_data)
         with Pool(self._n_jobs) as p:
             res = p.map(col_diff, (c for _, c in vec_data.iteritems()))
 
@@ -256,7 +254,7 @@ class HeaderMaker:
         series.index.name = 'timestamp'
         return series
 
-    def single_column_diff(self, series, single_data):
+    def _single_column_diff(self, series, single_data):
         '''Runs the diff of one of the vector numeric columns on each of the
         individual blm data.
 
@@ -269,4 +267,18 @@ class HeaderMaker:
                 diff as values.
         '''
         return {b: (series - s).abs().mean() for b, s in single_data.items()}
+
+    @staticmethod
+    def _distance_matrix_to_header(distance_matrix):
+        """Converts a distance matrix to a header.
+
+        Args:
+            distance_matrix (pd.DataFrame): as index the columns of the vector
+                numeric data, as columns the blm names and contains the "distance"
+                between each.
+
+        Returns:
+            list: the header, a list of blm names.
+        """
+        return distance_matrix.idxmin(axis=1).tolist()
 
