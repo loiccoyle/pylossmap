@@ -147,8 +147,11 @@ class HeaderMaker:
         if BLM_list is None:
             BLM_list = self._fetch_blm_var_list(**kwargs)
 
-        with ThreadPool(self._n_threads) as p:
-            out = p.map(lambda x: DB.get(x, self.t1, self.t2), BLM_list)
+        if self._n_threads > 1:
+            with ThreadPool(self._n_threads) as p:
+                out = p.map(lambda x: DB.get(x, self.t1, self.t2), BLM_list)
+        else:
+            out = map(lambda x: DB.get(x, self.t1, self.t2), BLM_list)
         # Merges list of dicts
         out = {k: v for d in out for k, v in d.items()}
 
