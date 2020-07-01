@@ -527,10 +527,13 @@ class BLMDataFetcher:
         Returns:
             DataFrame: DataFrame containing the BLM data.
         """
-        header_fetchers = [self.fetch_custom_header,
-                           self.fetch_timber_header,
-                           self.fetch_manual_header,
-                           self.fetch_logging_header]
+        header_fetchers = [
+                self.fetch_timber_header,
+                self.fetch_manual_header,
+                self.fetch_logging_header]
+
+        if self.__custom_headers_folder.is_dir():
+            header_fetchers = [self.fetch_custom_header] + header_fetchers
 
         def get_header():
             for fetcher in header_fetchers:
