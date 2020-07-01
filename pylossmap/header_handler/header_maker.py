@@ -116,7 +116,7 @@ class HeaderMaker:
         data = out[1]
         if data.size == 0:
             raise ValueError('No vectornumeric data in time range '
-                             f'{self.t1}, {self.t2}.')
+                             f'{self.t1} -> {self.t2}.')
         df = pd.DataFrame(np.hstack([data, timestamps]))
         df.iloc[:, -1] = pd.to_datetime(df.iloc[:, -1], unit='s', utc=True)\
             .dt.tz_convert('Europe/Zurich')
@@ -134,6 +134,8 @@ class HeaderMaker:
         stores them in a dict.
 
         Args:
+            BLM_list (list, optional): to only fetch specific blms, provide a
+                list or blm names.
             timber_filter (str, optional): filtering when fetching variable
                 list from timber, "%" is the wild card.
             reg_filter (str, optional): additional regex filtering.
