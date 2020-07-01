@@ -546,9 +546,9 @@ class BLMDataFetcher:
                     self.__header = columns
                     break
 
-        print(self.BLM_var)
-        print(t1)
-        print(t2)
+        # print(self.BLM_var)
+        # print(t1)
+        # print(t2)
         data = self._db.get(self.BLM_var, t1, t2)[self.BLM_var]
         if data[1].size == 0:
             return
