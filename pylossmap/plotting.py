@@ -70,15 +70,20 @@ def plot_loss_map(data,
                 **kwargs)
     ax.legend()
 
+    ax.set_yscale('log')
+    ax.yaxis.grid(which='both')
     if ylim is not None:
         ax.set_ylim(ylim)
+        ax.set_yticks([10**p for p in range(int(np.log10(ylim[0])),
+                                            int(np.log10(ylim[1])) + 1)])
+    else:
+        tick_mask = data > 0
+        ax.set_yticks([10**p for p in range(int(np.log10(data[tick_mask].min())),
+                                            int(np.log10(data[tick_mask].max())) + 1)])
     if xlim is not None:
         # xlim = [0, meta['coord'].max()]
         # meta['coord'].max()
         ax.set_xlim(xlim)
-
-    ax.set_yscale('log')
-    ax.yaxis.grid(which='both')
 
     if title is not None:
         ax.set_title(title)
