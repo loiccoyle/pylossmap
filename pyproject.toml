@@ -21,20 +21,23 @@ pandas = "^1.0.3"
 matplotlib = "^3.2.1"
 jupyter = {version = "^1.0.0", optional = true}
 
+
+sphinx = {version="<3.3.0", optional = true}
+sphinx-autoapi = {version="^1.5.0", optional = true}
+sphinx-rtd-theme = {version="^0.5.0", optional = true}
+m2r2 = {version="^0.2.5", optional = true}
+
 [tool.poetry.dev-dependencies]
-sphinx = "<3.3.0"
 yapf = "^0.29.0"
 pytest-cov = "^2.8.1"
-sphinx-rtd-theme = "^0.4.3"
 pytest = "^5.4.1"
-sphinx-autoapi = "^1.2.1"
 pytest-pylint = "^0.15.1"
 pytest-watch = "^4.2.0"
 pytest-flake8 = "^1.0.4"
-m2r2 = "^0.2.5"
 
 [tool.poetry.extras]
 notebooks = ["jupyter"]
+docs = ["sphinx", "sphinx-autoapi", "sphinx-rtd-theme", "m2r2"]
 
 [tool.poetry.scripts]
 header_maker = 'pylossmap.header_handler.cli:main'
