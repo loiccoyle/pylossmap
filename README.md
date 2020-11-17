@@ -6,7 +6,11 @@ This library facilitates the fetching and handling of the LHC's BLM measurements
 
 # Installation
 
-tba
+```sh
+git clone https://github.com/loiccoyle/pylossmap
+cd pylossmap
+pip install .
+```
 
 # Requirements
 
