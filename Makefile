@@ -1,8 +1,6 @@
 PKGNAME=pylossmap
 
-default: build
-
-all: install
+default: install
 
 install:
 	pip install .
@@ -24,23 +22,18 @@ test-loop:
 	py.test tests
 	ptw --ext=.py,.pyx --ignore=doc tests
 
-flake8:
-	py.test --flake8
-
-pep8: flake8
-
 docstyle:
 	py.test --docstyle
 
-lint:
-	py.test --pylint
+setup.py:
+	poetry2setup > setup.py
 
-dependencies:
-	pip install -Ur requirements.txt
+requirements:
+	poetry export > requirements.txt
+	poetry export --dev > requirements-dev.txt
 
-.PHONY: yapf
-yapf:
-	yapf -i -r $(PKGNAME)
-	yapf -i setup.py
+format:
+	isort . && black .
 
-.PHONY: all clean install install-dev test  test-nocov flake8 pep8 dependencies docstyle
+
+.PHONY: clean install install-dev test test-cov test-loop docstyle setup.py requirements format

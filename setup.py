@@ -43,7 +43,7 @@ setup_kwargs = {
     'install_requires': install_requires,
     'extras_require': extras_require,
     'entry_points': entry_points,
-    'python_requires': '>=3.6.1,<4.0.0',
+    'python_requires': '>=3.6.2,<4.0.0',
 }
 
 
