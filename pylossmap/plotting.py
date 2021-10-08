@@ -135,8 +135,7 @@ def plot_waterfall(data,
         # make sure the columns are sorted in incresing s coord.
         missing = set(meta.index.tolist()) - set(data.columns)
         if missing:
-            for m in missing:
-                data[m] = np.nan
+            data[list(missing)] = np.nan
     data = data[meta.loc[data.columns].sort_values('dcum').index.tolist()]
 
     # Set some xaxis to s coord
@@ -145,6 +144,7 @@ def plot_waterfall(data,
     ax.imshow(data,
               aspect='auto',
               extent=extent,
+              interpolation="nearest",
               vmin=data.min().quantile(min_quant),
               vmax=data.max().quantile(max_quant))
     ax.yaxis_date(tz='Europe/Zurich')
