@@ -18,10 +18,6 @@ test:
 test-cov:
 	py.test --cov ./pylossmap --cov-report term-missing --cov-report xml:reports/coverage.xml --cov-report html:reports/coverage tests
 
-test-loop:
-	py.test tests
-	ptw --ext=.py,.pyx --ignore=doc tests
-
 docstyle:
 	py.test --docstyle
 
