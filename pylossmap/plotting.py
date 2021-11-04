@@ -1,23 +1,25 @@
-
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 
 
-def plot_loss_map(data,
-                  meta,
-                  types=['cold', 'warm', 'coll', 'xrp'],
-                  types_to_colour=None,
-                  xtick_labels=None,
-                  figsize=(20, 10),
-                  title=None,
-                  xlim=None,
-                  ylim=[1e-7, 1e1],
-                  ax=None,
-                  **kwargs):
-    '''Plots a loss map from data.
+def plot_loss_map(
+    data,
+    meta,
+    types=["cold", "warm", "coll", "xrp"],
+    types_to_colour=None,
+    xtick_labels=None,
+    figsize=(20, 10),
+    title=None,
+    xlim=None,
+    ylim=[1e-7, 1e1],
+    ax=None,
+    **kwargs,
+):
+    """Plots a loss map from data.
 
     Args:
         data (Series): Series with as index the blms and value the
@@ -33,24 +35,28 @@ def plot_loss_map(data,
 
     Returns:
         Figure, Ax: figure and ax objects of the figure.
-    '''
+    """
 
     if types_to_colour is None:
-        types_to_colour = {'cold': 'b',
-                           'warm': 'r',
-                           'coll': 'k',
-                           'xrp': 'g',
-                           'other': 'm'}
+        types_to_colour = {
+            "cold": "b",
+            "warm": "r",
+            "coll": "k",
+            "xrp": "g",
+            "other": "m",
+        }
 
     if title is None:
         try:
-            title = (f'Beam Mode: {data.name[0]}, '
-                     f'Timestamp: {data.name[2].strftime("%Y-%m-%d %H:%M:%S:%f")}')
+            title = (
+                f"Beam Mode: {data.name[0]}, "
+                f'Timestamp: {data.name[2].strftime("%Y-%m-%d %H:%M:%S:%f")}'
+            )
         except Exception:
             pass
 
     if xlim is None:
-        xlim = [meta['dcum'].min(), meta['dcum'].max()]
+        xlim = [meta["dcum"].min(), meta["dcum"].max()]
 
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -58,28 +64,38 @@ def plot_loss_map(data,
         fig = ax.get_figure()
 
     for typ in types:
-        mask = meta['type'] == typ
+        mask = meta["type"] == typ
         if not mask.any():
             continue
-        ax.stem(meta[mask]['dcum'],
-                data[mask],
-                markerfmt=' ',
-                linefmt=f'{types_to_colour[typ]}-',
-                use_line_collection=True,
-                label=typ,
-                **kwargs)
+        ax.stem(
+            meta[mask]["dcum"],
+            data[mask],
+            markerfmt=" ",
+            linefmt=f"{types_to_colour[typ]}-",
+            use_line_collection=True,
+            label=typ,
+            **kwargs,
+        )
     ax.legend()
 
-    ax.set_yscale('log')
-    ax.yaxis.grid(which='both')
+    ax.set_yscale("log")
+    ax.yaxis.grid(which="both")
     if ylim is not None:
         ax.set_ylim(ylim)
-        ax.set_yticks([10**p for p in range(int(np.log10(ylim[0])),
-                                            int(np.log10(ylim[1])) + 1)])
+        ax.set_yticks(
+            [10 ** p for p in range(int(np.log10(ylim[0])), int(np.log10(ylim[1])) + 1)]
+        )
     else:
         tick_mask = data > 0
-        ax.set_yticks([10**p for p in range(int(np.log10(data[tick_mask].min())),
-                                            int(np.log10(data[tick_mask].max())) + 1)])
+        ax.set_yticks(
+            [
+                10 ** p
+                for p in range(
+                    int(np.log10(data[tick_mask].min())),
+                    int(np.log10(data[tick_mask].max())) + 1,
+                )
+            ]
+        )
     if xlim is not None:
         # xlim = [0, meta['coord'].max()]
         # meta['coord'].max()
@@ -89,18 +105,20 @@ def plot_loss_map(data,
         ax.set_title(title)
 
     if xtick_labels is not None:
-        ax.set_xticks([meta[c]['dcum'] for c in xtick_labels])
+        ax.set_xticks([meta[c]["dcum"] for c in xtick_labels])
         ax.set_xticklabels(xtick_labels, rotation=90, fontsize=7)
     return fig, ax
 
 
-def plot_waterfall(data,
-                   meta,
-                   title=None,
-                   figsize=(20, 10),
-                   min_max_quantile=0.85,
-                   ax=None,
-                   fill_missing=True):
+def plot_waterfall(
+    data,
+    meta,
+    title=None,
+    figsize=(20, 10),
+    min_max_quantile=0.85,
+    ax=None,
+    fill_missing=True,
+):
     """Plots a water plot of the data.
 
     Args:
@@ -122,8 +140,10 @@ def plot_waterfall(data,
         max_quant = min_max_quantile
 
     # set the time axis labels
-    y_lims = [data.index.get_level_values('timestamp')[-1],
-              data.index.get_level_values('timestamp')[0]]
+    y_lims = [
+        data.index.get_level_values("timestamp")[-1],
+        data.index.get_level_values("timestamp")[0],
+    ]
     y_lims = mdates.date2num(y_lims)
 
     if ax is None:
@@ -136,18 +156,20 @@ def plot_waterfall(data,
         missing = set(meta.index.tolist()) - set(data.columns)
         if missing:
             data[list(missing)] = np.nan
-    data = data[meta.loc[data.columns].sort_values('dcum').index.tolist()]
+    data = data[meta.loc[data.columns].sort_values("dcum").index.tolist()]
 
     # Set some xaxis to s coord
-    x_lims = [0, meta['dcum'].max()]
+    x_lims = [0, meta["dcum"].max()]
     extent = [x_lims[0], x_lims[1], y_lims[0], y_lims[1]]
-    ax.imshow(data,
-              aspect='auto',
-              extent=extent,
-              interpolation="nearest",
-              vmin=data.min().quantile(min_quant),
-              vmax=data.max().quantile(max_quant))
-    ax.yaxis_date(tz='Europe/Zurich')
+    ax.imshow(
+        data,
+        aspect="auto",
+        extent=extent,
+        interpolation="nearest",
+        vmin=data.min().quantile(min_quant),
+        vmax=data.max().quantile(max_quant),
+    )
+    ax.yaxis_date(tz="Europe/Zurich")
 
     if title is not None:
         ax.set_title(title)

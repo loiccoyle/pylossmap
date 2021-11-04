@@ -1,19 +1,16 @@
+import copy
 import logging
+from functools import partial
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import copy
 
-from pathlib import Path
-from functools import partial
-
-from .utils import DB
-from .utils import BEAM_META
-from .utils import row_from_time
-from .utils import sanitize_t
 from .blm_filters import Filters
 from .lossmap import LossMap
 from .plotting import plot_waterfall
 from .timber_vars import PRIMARY_BLM_7
+from .utils import BEAM_META, DB, row_from_time, sanitize_t
 
 # TODO: it would be quite cool to have the lossmap filtering and processing
 # methods also work for the BLMData object. Maybe the LossMap object should be
@@ -21,7 +18,6 @@ from .timber_vars import PRIMARY_BLM_7
 
 
 class BLMData(Filters):
-
     @classmethod
     def load(cls, file_path, **kwargs):
         """Load the data from a hdf file and create a BLMData instance.
@@ -35,13 +31,13 @@ class BLMData(Filters):
         Raises:
             FileNotFoundError: If file does not exist.
         """
-        file_path = Path(file_path).with_suffix('.h5')
+        file_path = Path(file_path).with_suffix(".h5")
         if not file_path.is_file():
-            raise FileNotFoundError(f'File {file_path} not found.')
+            raise FileNotFoundError(f"File {file_path} not found.")
 
-        data = pd.read_hdf(file_path, 'data')
-        meta = pd.read_hdf(file_path, 'meta')
-        header = pd.read_hdf(file_path, 'header')
+        data = pd.read_hdf(file_path, "data")
+        meta = pd.read_hdf(file_path, "meta")
+        header = pd.read_hdf(file_path, "header")
         header = header[0].tolist()
         # # read real columns from csv file & replace fake columns
         # with open(file_path.with_suffix('.csv'), 'r') as fp:
@@ -49,11 +45,7 @@ class BLMData(Filters):
         data.columns = [c.rstrip() for c in header]
         return cls(data, meta, **kwargs)
 
-    def __init__(self,
-                 data,
-                 meta,
-                 BLM_filter=r'BLM[Q|B|A|T|2|E]I.*',
-                 context=None):
+    def __init__(self, data, meta, BLM_filter=r"BLM[Q|B|A|T|2|E]I.*", context=None):
         """This class handles the parsing/preprocessing & plotting of the BLM data.
 
         Args:
@@ -72,29 +64,31 @@ class BLMData(Filters):
             if not isinstance(BLM_filter, list):
                 BLM_filter = [BLM_filter]
             for f in BLM_filter:
-                self.df = self.df.filter(regex=f, axis='columns')
+                self.df = self.df.filter(regex=f, axis="columns")
         self.meta = self._get_metadata(meta)
 
         # Dynamically add beam meta fetching methods
         for k, (v, series) in BEAM_META.items():
             meth = partial(self.fetch_var, v, timeseries=series)
-            name = f'fetch_{k}'
+            name = f"fetch_{k}"
             meth.__name__ = name
-            meth.__doc__ = (f"Gets {k} data from timber for the current "
-                            "time range.\n"
-                            "Args:\n"
-                            # "\tv (str, optional): Timber variable.\n"
-                            # "\ttimeseries (bool, optional): whether Timber "
-                            # "variable returns a timeseries.\n"
-                            "\treturn_raw (bool, optional): if True, returns "
-                            "the timestamps along with the data.\n"
-                            "\n"
-                            "\tkwargs: any timber variable flags, such as the "
-                            " beam or the plane."
-                            "Returns:\n"
-                            "\tDataFrame or tuple: Dataframe with timestamp"
-                            "and data if return_raw is True, a tuple "
-                            "containing timestamp and data arrays.")
+            meth.__doc__ = (
+                f"Gets {k} data from timber for the current "
+                "time range.\n"
+                "Args:\n"
+                # "\tv (str, optional): Timber variable.\n"
+                # "\ttimeseries (bool, optional): whether Timber "
+                # "variable returns a timeseries.\n"
+                "\treturn_raw (bool, optional): if True, returns "
+                "the timestamps along with the data.\n"
+                "\n"
+                "\tkwargs: any timber variable flags, such as the "
+                " beam or the plane."
+                "Returns:\n"
+                "\tDataFrame or tuple: Dataframe with timestamp"
+                "and data if return_raw is True, a tuple "
+                "containing timestamp and data arrays."
+            )
             setattr(self, name, meth)
 
     def fetch_var(self, v, timeseries=True, return_raw=False, **kwargs):
@@ -111,23 +105,22 @@ class BLMData(Filters):
                 return_raw is True, a tuple containing timestamp and data
                 arrays.
         """
-        t1 = self.df.index.get_level_values('timestamp')[0]
+        t1 = self.df.index.get_level_values("timestamp")[0]
         t2 = None
         # key, timeseries = BEAM_META[v]
         if timeseries:
-            t2 = self.df.index.get_level_values('timestamp')[-1]
+            t2 = self.df.index.get_level_values("timestamp")[-1]
         try:
             v = v.format(**kwargs)
         except KeyError as e:
             raise KeyError(f"Provide {e} kwarg.")
         out = DB.get(v, t1, t2)[v]
         if not return_raw:
-            out = pd.DataFrame(np.vstack(out).T, columns=['timestamp', v])
-            out['timestamp'] = pd.to_datetime(out['timestamp'],
-                                              unit='s',
-                                              utc=True).dt\
-                .tz_convert('Europe/Zurich')
-            out = out.set_index('timestamp')
+            out = pd.DataFrame(np.vstack(out).T, columns=["timestamp", v])
+            out["timestamp"] = pd.to_datetime(
+                out["timestamp"], unit="s", utc=True
+            ).dt.tz_convert("Europe/Zurich")
+            out = out.set_index("timestamp")
         return out
 
     def copy(self):
@@ -155,7 +148,7 @@ class BLMData(Filters):
 
         if not mask:
             ret = self.copy()
-            ret.df = ret.df.filter(regex=reg, axis='columns')
+            ret.df = ret.df.filter(regex=reg, axis="columns")
         else:
             ret = self.df.columns.str.contains(reg, regex=True)
         return ret
@@ -179,7 +172,7 @@ class BLMData(Filters):
         if BLM_max is None:
             BLM_max = PRIMARY_BLM_7[1] + PRIMARY_BLM_7[2]
 
-        maxes = self.df.groupby('mode')[BLM_max].idxmax()
+        maxes = self.df.groupby("mode")[BLM_max].idxmax()
         # tuples are (beam_mode, timestamp)
         # only keep timestamp
         return maxes.applymap(lambda x: x[1])
@@ -203,9 +196,10 @@ class BLMData(Filters):
         iterable = []
         for mode, row in self.find_max(BLM_max).iterrows():
             iterable.extend([[mode, t, blm] for blm, t in row.items()])
-        maxes = pd.DataFrame(iterable, columns=['mode', 'timestamp', 'blm'])\
-            .groupby(['mode', 'timestamp'], sort=False)
-        return ((r[0], r[1]['blm'].tolist()) for r in maxes)
+        maxes = pd.DataFrame(iterable, columns=["mode", "timestamp", "blm"]).groupby(
+            ["mode", "timestamp"], sort=False
+        )
+        return ((r[0], r[1]["blm"].tolist()) for r in maxes)
 
     def _get_metadata(self, meta):
         """Gets the coords and type for the blms in the "df" DataFrame, for blms
@@ -222,19 +216,18 @@ class BLMData(Filters):
         with_meta = list(blms & set(meta.index.tolist()))
         without_meta = list(blms - set(meta.index.tolist()))
         with_meta_df = meta.loc[with_meta]
-        without_meta_df = pd.DataFrame({'blm': without_meta}).set_index('blm')
-        without_meta_df['type'] = 'other'
-        without_meta_df['dcum'] = None
-        return pd.concat([with_meta_df, without_meta_df], sort=False)\
-            .sort_values('dcum')\
-            .astype({'dcum': 'int64', 'type': 'str'})
+        without_meta_df = pd.DataFrame({"blm": without_meta}).set_index("blm")
+        without_meta_df["type"] = "other"
+        without_meta_df["dcum"] = None
+        return (
+            pd.concat([with_meta_df, without_meta_df], sort=False)
+            .sort_values("dcum")
+            .astype({"dcum": "int64", "type": "str"})
+        )
 
-    def loss_map(self,
-                 datetime=None,
-                 row=None,
-                 context=None,
-                 background=None,
-                 **kwargs):
+    def loss_map(
+        self, datetime=None, row=None, context=None, background=None, **kwargs
+    ):
         """Creates a LossMap instance.
 
         Args:
@@ -257,8 +250,7 @@ class BLMData(Filters):
         if datetime is None and row is None:
             raise ValueError('Provide either "datetime", or "row".')
         if row is None:
-            row = row_from_time(self.df, datetime,
-                                flatten=True, method='nearest')
+            row = row_from_time(self.df, datetime, flatten=True, method="nearest")
         if datetime is None:
             try:
                 # try to get a datetime from the name of the row being passed.
@@ -277,12 +269,12 @@ class BLMData(Filters):
             context = self.context
 
         data = pd.concat([row, self.meta], axis=1, sort=False)
-        data.columns = ['data', 'dcum', 'type']
+        data.columns = ["data", "dcum", "type"]
         LM = LossMap(data=data, datetime=datetime, context=context, **kwargs)
 
         if background is not None:
             background = pd.concat([background, self.meta], axis=1, sort=False)
-            background.columns = ['data', 'dcum', 'type']
+            background.columns = ["data", "dcum", "type"]
             background = LossMap(data=background, context=context)
             LM.set_background(background)
         return LM
@@ -297,9 +289,9 @@ class BLMData(Filters):
         Raises:
             OSError: If file already exists.
         """
-        file_path = Path(file_path).with_suffix('.h5')
+        file_path = Path(file_path).with_suffix(".h5")
         if file_path.is_file():
-            raise OSError(f'File {file_path} already exists.')
+            raise OSError(f"File {file_path} already exists.")
 
         # remove BLM names from columns due to hdf header size limitation.
         # save_data = self.df.copy()
@@ -308,11 +300,11 @@ class BLMData(Filters):
             # replace real header with numbers to not have problem saving large
             # header to hdf
             self.df.columns = range(self.df.shape[1])
-            self.df.to_hdf(file_path, key='data', format='table')
-            self.meta.to_hdf(file_path, key='meta', format='table',
-                             append=True)
-            pd.DataFrame(header).to_hdf(file_path, key='header',
-                                        format='table', append=True)
+            self.df.to_hdf(file_path, key="data", format="table")
+            self.meta.to_hdf(file_path, key="meta", format="table", append=True)
+            pd.DataFrame(header).to_hdf(
+                file_path, key="header", format="table", append=True
+            )
         finally:
             # put real header back
             self.df.columns = header
@@ -333,13 +325,13 @@ class BLMData(Filters):
         # TODO: fix this format mode thing
         if data is None:
             data = self.df
-        if 'mode' in data.index.names:
+        if "mode" in data.index.names:
             out = {}
-            for mode, d in data.groupby('mode'):
+            for mode, d in data.groupby("mode"):
                 if title is not None:
-                    kwargs['title'] = title.format(mode=mode)
+                    kwargs["title"] = title.format(mode=mode)
                 else:
-                    kwargs['title'] = mode
+                    kwargs["title"] = mode
 
                 out[mode] = plot_waterfall(data=d, meta=self.meta, **kwargs)
             return out
@@ -347,7 +339,7 @@ class BLMData(Filters):
             return plot_waterfall(data=data, meta=self.meta, **kwargs)
 
     def __getitem__(self, key):
-        '''
+        """
         Args:
             key (int, float, str): if int then the corresponding data row is
                 used to create a LossMap instance. If float or str then assumed
@@ -355,17 +347,17 @@ class BLMData(Filters):
 
         Returns:
             LossMap: LossMap instance with the desired BLM data.
-        '''
+        """
         if isinstance(key, int) and key < self.df.size:
             # get row time from data index.
-            time = self.df.index.get_level_values('timestamp')[key]
+            time = self.df.index.get_level_values("timestamp")[key]
         else:
             # assume epoch or to_datetime str.
             time = sanitize_t(key)
         return self.loss_map(datetime=time)
 
     def __repr__(self):
-        out = 'df:\n' + self.df.__repr__() + '\nmeta:\n' + self.meta.__repr__()
+        out = "df:\n" + self.df.__repr__() + "\nmeta:\n" + self.meta.__repr__()
         if self.context is not None:
-            out += '\ncontext:\n' + self.context.__repr__()
+            out += "\ncontext:\n" + self.context.__repr__()
         return out

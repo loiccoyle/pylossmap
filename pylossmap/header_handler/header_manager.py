@@ -1,20 +1,21 @@
 import logging
 import warnings
-import pandas as pd
-
 from os import remove
-from shutil import copytree
 from pathlib import Path
+from shutil import copytree
+
+import pandas as pd
 
 from ..utils import sanitize_t
 
 
 class HeaderManager:
-    def __init__(self,
-                 header_folder=Path(__file__).parents[1] / 'metadata' / 'custom_headers'):
+    def __init__(
+        self, header_folder=Path(__file__).parents[1] / "metadata" / "custom_headers"
+    ):
         self.header_folder = header_folder
         if not self.header_folder.is_dir():
-            raise FileNotFoundError(f'Directory not found: {self.header_folder}')
+            raise FileNotFoundError(f"Directory not found: {self.header_folder}")
         self._logger = logging.getLogger(__name__)
 
     # @staticmethod
@@ -41,10 +42,10 @@ class HeaderManager:
             warnings.simplefilter("ignore")
             headers = self.list()
             if not headers:
-                raise ValueError(f'Header folder {self.header_folder} is empty.')
-            selected_i = pd.to_datetime([t.stem for t in headers],
-                                        format='%Y_%m_%d_%H_%M_%S%z')\
-                .get_loc(t, **kwargs)
+                raise ValueError(f"Header folder {self.header_folder} is empty.")
+            selected_i = pd.to_datetime(
+                [t.stem for t in headers], format="%Y_%m_%d_%H_%M_%S%z"
+            ).get_loc(t, **kwargs)
         return headers[selected_i]
 
     def add(self, t, header, ignore_existing=False):
@@ -61,18 +62,20 @@ class HeaderManager:
                 False.
         """
         t = sanitize_t(t)
-        header_file = Path(self.header_folder / (t.strftime('%Y_%m_%d_%H_%M_%S%z') +
-                                          '.csv'))
+        header_file = Path(
+            self.header_folder / (t.strftime("%Y_%m_%d_%H_%M_%S%z") + ".csv")
+        )
 
         # print(header_file)
-        header = '\n'.join(header)
+        header = "\n".join(header)
         if not header_file.exists() or ignore_existing:
-            with open(header_file, 'w') as fp:
+            with open(header_file, "w") as fp:
                 fp.write(header)
                 self._logger.info(f"Added {file} header file.")
         else:
-            raise FileExistsError(f'File {file} already exists, pass '
-                                  'ignore_existing=True to replace.')
+            raise FileExistsError(
+                f"File {file} already exists, pass " "ignore_existing=True to replace."
+            )
 
     def remove(self, t, **kwargs):
         """Deletes a header file from the header folder.
@@ -92,16 +95,16 @@ class HeaderManager:
             remove(selected_file)
             self._logger.info(f"Removed {selected_file} header file.")
         else:
-            raise FileNotFoundError(f'File {selected_file} not found.')
+            raise FileNotFoundError(f"File {selected_file} not found.")
 
     def read(self, t, **kwargs):
         t = sanitize_t(t)
         selected_file = self.select(t, **kwargs)
         if selected_file.is_file():
-            with open(selected_file, 'r')as fp:
+            with open(selected_file, "r") as fp:
                 return [l.rstrip() for l in fp]
         else:
-            raise FileNotFoundError(f'File {selected_file} not found.')
+            raise FileNotFoundError(f"File {selected_file} not found.")
 
     def list(self):
         """Lists the files in the header folder.
@@ -109,7 +112,7 @@ class HeaderManager:
         Returns:
             list: list of files.
         """
-        return list(sorted(self.header_folder.glob('*')))
+        return list(sorted(self.header_folder.glob("*")))
 
     def export(self, destination=None):
         """Copies the header folder elsewhere.
@@ -122,4 +125,3 @@ class HeaderManager:
             destination = Path.cwd() / self.header_folder.name
         copytree(self.header_folder, destination)
         self._logger.info(f"Copied {self.header_folder} to {destination}.")
-

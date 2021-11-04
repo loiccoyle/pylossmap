@@ -1,29 +1,28 @@
+import logging
 import re
 import time
-import logging
+from collections import OrderedDict
+from functools import partial
+from multiprocessing import Pool, cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
+
 import numpy as np
 import pandas as pd
 
-from functools import partial
-from multiprocessing import Pool
-from multiprocessing.dummy import Pool as ThreadPool
-from multiprocessing import cpu_count
-from collections import OrderedDict
-
-from ..utils import DB
-from ..utils import no_limit_timber_get
-from ..utils import sanitize_t
+from ..utils import DB, no_limit_timber_get, sanitize_t
 
 
 class HeaderMaker:
-    def __init__(self,
-                 t,
-                 look_back='30M',
-                 look_forward='30M',
-                 t2=None,
-                 vec_var='LHC.BLMI:LOSS_RS09',
-                 n_jobs=-1,
-                 n_threads=512):
+    def __init__(
+        self,
+        t,
+        look_back="30M",
+        look_forward="30M",
+        t2=None,
+        vec_var="LHC.BLMI:LOSS_RS09",
+        n_jobs=-1,
+        n_threads=512,
+    ):
         """Makes timber's vector numeric BLM header for a given timestamp. By
         brute forcely determining which column corresponds to which individual
         BLM timber variable. Building the header can be quite slow ~45 mins per
@@ -62,8 +61,9 @@ class HeaderMaker:
             self._look_forward = pd.Timedelta(look_forward)
             self.t1 = self.t - self._look_back
             self.t2 = self.t + self._look_forward
-        self._logger.info(f'Using t1: {self.t1} and t2: {self.t2} for data '
-                          'matching.')
+        self._logger.info(
+            f"Using t1: {self.t1} and t2: {self.t2} for data " "matching."
+        )
 
         if n_jobs == -1:
             n_jobs = cpu_count()
@@ -107,7 +107,7 @@ class HeaderMaker:
             pd.DataFrame: pd.DataFrame of the vector numeric data with as index
                 the timestamp in Europe/Zurich timezone.
         """
-        self._logger.info('Fetching vector numeric data.')
+        self._logger.info("Fetching vector numeric data.")
 
         # out = DB.get(self.vec_var, self.t1, self.t2)[self.vec_var]
         out = no_limit_timber_get(self.vec_var, self.t1, self.t2)[self.vec_var]
@@ -115,18 +115,20 @@ class HeaderMaker:
         timestamps = out[0][:, np.newaxis]
         data = out[1]
         if data.size == 0:
-            raise ValueError('No vectornumeric data in time range '
-                             f'{self.t1} -> {self.t2}.')
+            raise ValueError(
+                "No vectornumeric data in time range " f"{self.t1} -> {self.t2}."
+            )
         df = pd.DataFrame(np.hstack([data, timestamps]))
-        df.iloc[:, -1] = pd.to_datetime(df.iloc[:, -1], unit='s', utc=True)\
-            .dt.tz_convert('Europe/Zurich')
+        df.iloc[:, -1] = pd.to_datetime(
+            df.iloc[:, -1], unit="s", utc=True
+        ).dt.tz_convert("Europe/Zurich")
         df.set_index(df.columns[-1], inplace=True)
-        df.index.name = 'timestamp'
+        df.index.name = "timestamp"
         # rounding time to the second because there is slight offset between
         # vector numeric and single blm var.
-        df.index = df.index.round('S')
+        df.index = df.index.round("S")
 
-        self._logger.info(f'Vector numeric shape: {df.shape}')
+        self._logger.info(f"Vector numeric shape: {df.shape}")
         return df
 
     def fetch_single(self, BLM_list=None, **kwargs):
@@ -144,13 +146,13 @@ class HeaderMaker:
             dict: dicitonary containing as keys, the blm name and as values,
                 pd.Series of the data.
         """
-        self._logger.info('Fetching individual BLM data.')
+        self._logger.info("Fetching individual BLM data.")
 
         if BLM_list is None:
             BLM_list = self._fetch_blm_var_list(**kwargs)
 
         if self._n_threads > 1:
-            self._logger.debug('Using threads.')
+            self._logger.debug("Using threads.")
             with ThreadPool(self._n_threads) as p:
                 out = p.map(lambda x: DB.get(x, self.t1, self.t2), BLM_list)
         else:
@@ -161,16 +163,15 @@ class HeaderMaker:
         blm_data = OrderedDict()
         for blm, time_data in out.items():
             if time_data[0].size > 0:
-                blm_data[blm.split(':')[0]] = self._clean_get(time_data)
+                blm_data[blm.split(":")[0]] = self._clean_get(time_data)
             else:
-                self._logger.debug(f'Timber variable {blm} has no data.')
+                self._logger.debug(f"Timber variable {blm} has no data.")
 
-        self._logger.info(f'Number of individual BLMs: {len(blm_data)}')
+        self._logger.info(f"Number of individual BLMs: {len(blm_data)}")
         return blm_data
 
     @staticmethod
-    def _fetch_blm_var_list(timber_filter='BLM%:LOSS_RS09',
-                            reg_filter='BLM.[IL]'):
+    def _fetch_blm_var_list(timber_filter="BLM%:LOSS_RS09", reg_filter="BLM.[IL]"):
         """Gets a list of all the BLM respecting the filtering from timber.
 
         Args:
@@ -187,12 +188,13 @@ class HeaderMaker:
             out = [blm for blm in out if re.search(reg_filter, blm)]
 
         if not out:
-            raise ValueError('No timber BLM variables passed the filters.')
+            raise ValueError("No timber BLM variables passed the filters.")
 
         return out
 
-    def make_header(self, vec_data=None, single_data=None,
-                    fall_back_header=None, **kwargs):
+    def make_header(
+        self, vec_data=None, single_data=None, fall_back_header=None, **kwargs
+    ):
         """Makes the header. Note, this takes a long time...
 
         Args:
@@ -227,14 +229,14 @@ class HeaderMaker:
             pd.DataFrame: as index the columns of the vector numeric data, as
                 columns the blm names and contains the "distance" between each.
         """
-        self._logger.info('Constructing distance matrix.')
+        self._logger.info("Constructing distance matrix.")
         start_t = time.time()
         # calculate the distance matrix
         col_diff = partial(self._single_column_diff, single_data=single_data)
         with Pool(self._n_jobs) as p:
             res = p.map(col_diff, (c for _, c in vec_data.iteritems()))
 
-        self._logger.info(f'Time elapsed: {time.time() - start_t}')
+        self._logger.info(f"Time elapsed: {time.time() - start_t}")
         return pd.DataFrame(res)
 
     @staticmethod
@@ -251,16 +253,17 @@ class HeaderMaker:
                 in Europe/Zurich timezone, with the data array as data.
         """
         series = pd.Series(data=time_data[1], index=time_data[0])
-        series.index = pd.to_datetime(series.index, unit='s', utc=True)\
-            .tz_convert('Europe/Zurich')
+        series.index = pd.to_datetime(series.index, unit="s", utc=True).tz_convert(
+            "Europe/Zurich"
+        )
         # rounding time to the second because there is slight offset between
         # vector numeric and single blm var.
-        series.index = series.index.round('S')
-        series.index.name = 'timestamp'
+        series.index = series.index.round("S")
+        series.index.name = "timestamp"
         return series
 
     def _single_column_diff(self, series, single_data):
-        '''Runs the diff of one of the vector numeric columns on each of the
+        """Runs the diff of one of the vector numeric columns on each of the
         individual blm data.
 
         Args:
@@ -270,7 +273,7 @@ class HeaderMaker:
         Returns:
             dict: dictionary with the blm name as keys and the result of the
                 diff as values.
-        '''
+        """
         return {b: (series - s).abs().mean() for b, s in single_data.items()}
 
     @staticmethod
@@ -286,4 +289,3 @@ class HeaderMaker:
             list: the header, a list of blm names.
         """
         return distance_matrix.idxmin(axis=1).tolist()
-
