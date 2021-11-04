@@ -47,7 +47,7 @@ class BLMData(Filters):
     def __init__(
         self,
         data: pd.DataFrame,
-        meta: pd.Dataframe,
+        meta: pd.DataFrame,
         BLM_filter: Union[str, List[str]] = r"BLM[Q|B|A|T|2|E]I.*",
         context: Optional[Any] = None,
     ):
