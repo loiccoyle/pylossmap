@@ -1,6 +1,10 @@
+from typing import Iterable, Iterator, List, Optional, Union
+
 import numpy as np
 import pandas as pd
 import pytimber
+
+from .type_specs import PathSpec, TimeSpec
 
 try:
     from tqdm.auto import tqdm
@@ -48,18 +52,17 @@ def get_timber_db(*args, **kwargs):
 
 
 DB = None
-DB = get_timber_db()
+DB = get_timber_db()  # pytimber.LoggingDB
 
 
-def uniquify(iterable):
+def uniquify(iterable: Iterable[str]) -> Iterator[str]:
     """Makes the entries in a list unique.
 
     Args:
-        iterable (Iterable): list to uniquify, duplicates will have
-            "_{number}" added to them.
+        iterable: list to uniquify, duplicates will have "_{number}" added to them.
 
     Yields:
-        str: uniquified element of iterable
+        uniquified element of iterable
     """
     seen = set()
     for item in iterable:
@@ -72,29 +75,28 @@ def uniquify(iterable):
         seen.add(newitem)
 
 
-def to_datetime(ts):
+def to_datetime(ts: Union[int, str]) -> pd.Timestamp:
     """Epoch time to datetime.
 
     Args:
         ts (int/float): Epoch or Unix time.
 
     Returns:
-        pd.Timestamp: pd.Timestamp instance in Europe/Zurich timezone.
+        pd.Timestamp instance in Europe/Zurich timezone.
     """
     return pd.to_datetime(ts, unit="s", utc=True).tz_convert("Europe/Zurich")
 
 
-def fill_from_time(t, fuzzy_t="12H"):
+def fill_from_time(t: TimeSpec, fuzzy_t: str = "12H") -> dict:
     """Gets the machine fill of a timestamp.
 
     Args:
-        t (int/float/str): Epoch/Unix time or timestamp string.
-        fuzzy_t (str, optional): pd.Timedelta format string. Controls the
-            look back and look forward around "t" when looking for the fill.
+        t: Epoch/Unix time or timestamp string.
+        fuzzy_t: pd.Timedelta format string. Controls the look back and look forward
+            around "t" when looking for the fill.
 
     Returns:
-        dict: dict containing the start/end time of the fill and
-              with beam mode info.
+        dict containing the start/end time of the fill and with beam mode info.
 
     Raises:
         ValueError: if not fill is found.
@@ -114,13 +116,12 @@ def fill_from_time(t, fuzzy_t="12H"):
     raise ValueError("Fill not found.")
 
 
-def beammode_from_time(t, fill=None, **kwargs):
+def beammode_from_time(t: TimeSpec, fill: Optional[dict] = None, **kwargs):
     """gets the beam mode at a given timestamp.
 
     Args:
-        t (int/float/str): Epoch/Unix time or timestamp string.
-        fill (dict, optional): If provided will skip looking for the fill and
-            use the provided fill.
+        t: Epoch/Unix time or timestamp string.
+        fill: If provided will skip fetching for the fill and use the provided fill.
         **kwargs: passed to utils.fill_from_time.
 
     Returns:
@@ -136,7 +137,9 @@ def beammode_from_time(t, fill=None, **kwargs):
     return fill
 
 
-def beammode_to_df(beam_mode, subset="all", unique_subset=False):
+def beammode_to_df(
+    beam_mode, subset: str = "all", unique_subset: bool = False
+) -> pd.DataFrame:
     # put beam mode timestamps into dataframe
     beam_mode = pd.DataFrame(beam_mode)
     beam_mode = beam_mode.set_index("mode").T
@@ -153,7 +156,9 @@ def beammode_to_df(beam_mode, subset="all", unique_subset=False):
     return beam_mode
 
 
-def row_from_time(data, t, flatten=False, **kwargs):
+def row_from_time(
+    data: pd.DataFrame, t: TimeSpec, flatten: bool = False, **kwargs
+) -> pd.Series:
     t = sanitize_t(t)
     if flatten:
         index = data.index.get_level_values("timestamp")
@@ -163,7 +168,7 @@ def row_from_time(data, t, flatten=False, **kwargs):
     return data.iloc[index.get_loc(t, **kwargs)]
 
 
-def coll_meta(augment_b2=True):
+def coll_meta(augment_b2: bool = True) -> pd.DataFrame:
     coll_db_file = Path(__file__).parent / "metadata" / "coll_db.csv"
     df = pd.read_csv(coll_db_file, index_col="name")
     if augment_b2:
@@ -187,17 +192,20 @@ def angle_convert(angle):
 
 
 def get_ADT(
-    t1, t2, planes=["H", "V"], beams=[1, 2], include=["amp", "length", "trigger"]
+    t1: TimeSpec,
+    t2: TimeSpec,
+    planes: List[str] = ["H", "V"],
+    beams: List[int] = [1, 2],
+    include: List[str] = ["amp", "length", "trigger"],
 ):
-    """Gets ADT blowup trigger data for the requested time interval,
-    beam and plane.
+    """Gets ADT blowup trigger data for the requested time interval, beam and plane.
 
     Args:
-        t1 (Datetime): start of interval.
-        t2 (Datetime): end of interval.
-        planes (list, optional): requested planes.
-        beams (list, optional): requested beams.
-        include (list, optional): list of ADT metrcis to fetch from timber.
+        t1: start of interval.
+        t2: end of interval.
+        planes: requested planes.
+        beams: requested beams.
+        include: list of ADT metrcis to fetch from timber.
             Must be a key of ADT_META.
 
     Returns:
@@ -234,12 +242,12 @@ def get_ADT(
     return joined
 
 
-def sanitize_t(t):
-    """Sanitizes input epoch or datetime string to pd.Timestamp in
-    'Europe/Zurich' timezone.
+def sanitize_t(t: TimeSpec) -> pd.Timestamp:
+    """Sanitizes input epoch or datetime string to pd.Timestamp in 'Europe/Zurich'
+    timezone.
 
     Args:
-        t (int, float, str):
+        t:
             - int or float: assumes utc time, converts to pd.Timestamp and to
             Europe/Zurich timezone.
 
@@ -247,7 +255,7 @@ def sanitize_t(t):
             and to 'Europe/Zurich' timezone if not already.
 
     Returns:
-        pd.Timestamp: Timestamp object for the given time.
+        Timestamp object for the given time.
     """
 
     if isinstance(t, (float, int)):
@@ -262,13 +270,12 @@ def sanitize_t(t):
     return t
 
 
-def files_to_df(folder):
+def files_to_df(folder: PathSpec) -> pd.DataFrame:
     """Converts '%Y_%m_%d_%H_%M_%S%z' format file names into a dataframe with
     with the corresponding timestamp as index and filename as the only column.
 
     Args:
-        folder (path like): path to folder containing the time format
-            compatible files.
+        folder: path to folder containing the time format compatible files.
 
     Returns:
         DataFrame: DatetimeIndexed DataFrame with a single column containing
@@ -290,7 +297,7 @@ def files_to_df(folder):
     )
 
 
-def no_limit_timber_get(variables, t1, t2, **kwargs):
+def no_limit_timber_get(variables: List[str], t1: TimeSpec, t2: TimeSpec, **kwargs):
     """Hacky bypass of the timber single query limit."""
     t1 = sanitize_t(t1)
     t2 = sanitize_t(t2)

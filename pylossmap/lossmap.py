@@ -1,8 +1,9 @@
-# import copy
 import logging
 import warnings
 from functools import partial
+from typing import Any, List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
 
 from .blm_filters import Filters
@@ -16,17 +17,16 @@ warnings.filterwarnings("ignore", "This pattern has match groups")
 class LossMap(Filters):
     def __init__(
         self,
-        data,
-        datetime=None,
-        context=None,
+        data: pd.DataFrame,
+        datetime: Optional[pd.Timestamp] = None,
+        context: Optional[Any] = None,
     ):
         """Handles the processing of the LossMap data.
 
         Args:
-            data (DataFrame): Dataframe contraining BLM data, dcum, type.
-            background (DataFrame, optional): BLM background signal.
-            datetime (Datetime, optional): Datetime of the data.
-            context (optional): additional context information.
+            data: Dataframe contraining BLM data, dcum, type.
+            datetime: Datetime of the data.
+            context: additional context information.
         """
 
         self._logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class LossMap(Filters):
         self.context = context
 
         # Dynamically add beam meta fetching methods
-        for k, (v, series) in BEAM_META.items():
+        for k, (v, _) in BEAM_META.items():
 
             meth = partial(self.fetch_var, v)
             name = f"fetch_{k}"
@@ -56,14 +56,15 @@ class LossMap(Filters):
             )
             setattr(self, name, meth)
 
-    def fetch_var(self, v, return_raw=False, **kwargs):
+    def fetch_var(
+        self, v: str, return_raw: bool = False, **kwargs
+    ) -> Union[Tuple[np.ndarray, np.ndarray], float]:
         """Fetches the value of a timber variable closest in time to the
         datetime attribute.
 
         Args:
-            v (str, optional): Timber variable.
-            return_raw (bool, optional): if True, returns the timestamps along
-                with the data.
+            v: Timber variable.
+            return_raw: if True, returns the timestamps along with the data.
 
         Returns:
             float or tuple: data point, if return_raw is True, returns tuple
@@ -83,11 +84,11 @@ class LossMap(Filters):
     def meta(self):
         return self.df[self._meta_cols]
 
-    def set_background(self, LM_bg):
+    def set_background(self, LM_bg: "LossMap") -> None:
         """Links the provided background LossMap to this one.
 
         Args:
-            LM_bg (LossMap): Background LossMap
+            LM_bg: Background LossMap
 
         Raises:
             ValueError: If the provided background is not a LossMap instance.
@@ -96,25 +97,25 @@ class LossMap(Filters):
             raise ValueError('"LM_bg" must be a LossMap instance.')
         self._background = LM_bg.copy()
 
-    def get_background(self):
+    def get_background(self) -> Optional["LossMap"]:
         """Returns the linked background LossMap
 
         Returns:
-            LossMap: the linked LossMap instance.
+            The linked LossMap instance.
         """
         return self._background
 
     def _check_datetime(self):
         if self.datetime is None:
             raise ValueError(
-                "'datetime' attribute must be set to be able to " "fetch Timber data"
+                "'datetime' attribute must be set to be able to fetch Timber data."
             )
 
-    def copy(self):
+    def copy(self) -> "LossMap":
         """Creates a copy of the current instance.
 
         Returns:
-            LossMap: Copied LossMap instance.
+            Copied LossMap instance.
         """
         out = LossMap(data=self.df, datetime=self.datetime, context=self.context)
         if self._background is not None:
@@ -122,14 +123,14 @@ class LossMap(Filters):
         return out
         # return copy.deepcopy(self)
 
-    def filter(self, reg, mask=False):
+    def filter(self, reg: str, mask: bool = False) -> Union["LossMap", np.ndarray]:
         """Applies a regexp filter to the BLM names a returns a filters LossMap
         instance.
 
         Args:
-            reg (str): regexp string.
-            mask (bool, optional): if True will return a boolean mask array,
-                otherwise will return a filtered LossMap instance.
+            reg: regexp string.
+            mask: if True will return a boolean mask array, otherwise will return
+                a filtered LossMap instance.
 
         Returns:
             LossMap or boolean array: LossMap instance or boolean mask array
@@ -143,19 +144,19 @@ class LossMap(Filters):
             ret = self.df.index.str.contains(reg, regex=True)
         return ret
 
-    def _blm_list_filter(self, blm_list):
+    def _blm_list_filter(self, blm_list: List[str]) -> "LossMap":
         ret = self.copy()
         ret.df = ret.df.loc[blm_list]
         return ret
 
-    def normalize(self, wrt="max"):
+    def normalize(self, wrt: str = "max") -> "LossMap":
         """Normalizes the loss map data.
 
         Args:
-            wrt (str, optional): Either 'max' or a BLM name.
+            wrt: Either 'max' or a BLM name.
 
         Returns:
-            LossMap: LossMap instance normalized.
+            LossMap instance normalized.
         """
         if wrt == "max":
             normalizer = self.df["data"].max()
@@ -165,11 +166,11 @@ class LossMap(Filters):
         ret.df["data"] /= normalizer
         return ret
 
-    def clean_background(self):
-        """Substracts the background from the data.
+    def clean_background(self) -> "LossMap":
+        """Subtracts the background from the data.
 
         Returns:
-            LossMap: LossMap instance with cleaned data.
+            LossMap instance with the background subtracted data.
         """
         if self._background is None:
             raise ValueError("background not set, use self.set_background.")
@@ -197,28 +198,27 @@ class LossMap(Filters):
     #         if re.search(k, min_loss_blm):
     #             return v
 
-    def beam_ratio(self, beam):
+    def beam_ratio(self, beam: int) -> float:
         """Beam loss ratio.
 
         Args:
-            beam (int): requested beam.
+            beam: requested beam.
 
         Returns:
-            float: requested beam summed/total losses.
+            Requested beam summed/total losses.
         """
-        b = self.beam(beam).df["data"]
-        b = b.sum()
+        b = self.beam(beam).df["data"].sum()
         return b / self.df["data"].sum()
 
-    def cleaning(self, IR=7):
-        """Cleaning efficiency ?
-        TODO : make sure this is correct.
+    # TODO: make sure it is correct
+    def cleaning(self, IR: int = 7):
+        """Cleaning efficiency.
 
         Args:
-            IR (int): either IR 5 or 7.
+            IR: either IR 5 or 7.
 
         Returns:
-            float: cleaning efficiency
+            Cleaning efficiency.
         """
         return self.IR(IR).DS().df["data"].max() / self.IR(IR).TCP().df["data"].max()
 
@@ -238,7 +238,7 @@ class LossMap(Filters):
     #     ret = self.copy()
     #     return ret.data['data'] - other.data['data']
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         bg_str = ""
         if self._background is not None:
             bg_str = f"\n\tbackground:\n{self._background.df.__repr__()}"

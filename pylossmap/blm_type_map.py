@@ -36,15 +36,15 @@ TYPE_MAP = {
 }
 
 
-def name_to_type(name, on_fail="other"):
+def name_to_type(name: str, on_fail="other") -> str:
     """Converts find the type corresponding a given BLM name.
 
     Args:
-        name (str): BLM name.
+        name: BLM name.
         on_fail (str, optional): returned if not BLM type is found.
 
     Returns:
-        str: the BLM type or "on_fail" if no BLM type is found.
+        the BLM type or `on_fail` if no BLM type is found.
     """
 
     for k, regex_l in TYPE_MAP.items():
