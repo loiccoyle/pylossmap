@@ -5,12 +5,7 @@ packages = ["pylossmap", "pylossmap.header_handler"]
 
 package_data = {
     "": ["*"],
-    "pylossmap": [
-        "metadata/*",
-        "metadata/custom_headers/*",
-        "metadata/dcum/*",
-        "metadata/headers/*",
-    ],
+    "pylossmap": ["metadata/*", "metadata/dcum/*", "metadata/headers/*"],
 }
 
 install_requires = [
