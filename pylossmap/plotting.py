@@ -1,9 +1,9 @@
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
