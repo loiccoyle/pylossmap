@@ -1,40 +1,44 @@
+from typing import Dict, List, Optional, Tuple
+
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
 
 
 def plot_loss_map(
-    data,
-    meta,
-    types=["cold", "warm", "coll", "xrp"],
-    types_to_colour=None,
-    xtick_labels=None,
-    figsize=(20, 10),
-    title=None,
-    xlim=None,
-    ylim=[1e-7, 1e1],
-    ax=None,
+    data: pd.Series,
+    meta: pd.DataFrame,
+    types: List[str] = ["cold", "warm", "coll", "xrp"],
+    types_to_colour: Optional[Dict[str, str]] = None,
+    xtick_labels: Optional[List[str]] = None,
+    figsize: Tuple[float, float] = (20, 10),
+    title: Optional[str] = None,
+    xlim: Optional[Tuple[float, float]] = None,
+    ylim: Tuple[float, float] = (1e-7, 1e1),
+    ax: Optional[plt.Axes] = None,
     **kwargs,
-):
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a loss map from data.
 
     Args:
-        data (Series): Series with as index the blms and value the
-            measurement [Gy/s]
-        meta (DataFrame): BLM metadata.
-        xtick_labels (list, optional): list of BLM names to add to the x
-            axis.
-        figsize (tuple, optional): figure size in inches.
-        title (str, optional): figure title.
-        xlim (tuple, optional): x axis limits.
-        ylim (tuple, optional): y axis limits.
+        data: Series with as index the blms and value the measurement [Gy/s].
+        meta: BLM metadata.
+        types: which types to plot.
+        types_to_colour: map of the types to colours.
+        xtick_labels: list of BLM names to add to the x axis.
+        figsize: figure size in inches.
+        title: figure title.
+        xlim: x axis limits.
+        ylim: y axis limits.
+        ax: ax on which to plot.
         **kwargs: forwarded to plt.bar.
 
     Returns:
-        Figure, Ax: figure and ax objects of the figure.
+        Figure and ax objects of the figure.
     """
 
     if types_to_colour is None:
@@ -111,26 +115,25 @@ def plot_loss_map(
 
 
 def plot_waterfall(
-    data,
-    meta,
-    title=None,
-    figsize=(20, 10),
-    min_max_quantile=0.85,
-    ax=None,
-    fill_missing=True,
-):
+    data: pd.DataFrame,
+    meta: pd.DataFrame,
+    title: str = None,
+    figsize: Tuple[float, float] = (20, 10),
+    min_max_quantile: float = 0.85,
+    ax: Optional[plt.Axes] = None,
+    fill_missing: bool = True,
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a water plot of the data.
 
     Args:
-        data (DataFrame): DataFrame containing BLM data.
-        meta (DataFrame): BLM metadata.
-        title (str, optional): figure title.
-        figsize (tuple, optional): figure size in inches.
-        min_max_quantile (tuple/float, optional): colormap min/max
-            threshold.
+        data: DataFrame containing BLM data.
+        meta: BLM metadata.
+        title: figure title.
+        figsize: figure size in inches.
+        min_max_quantile: colormap min/max threshold.
 
     Returns:
-        Figure, Ax: figure and ax objects of the plot.
+        Figure and ax objects of the plot.
     """
     if isinstance(min_max_quantile, tuple):
         min_quant = min_max_quantile[0]

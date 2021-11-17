@@ -1,6 +1,7 @@
 import itertools
 import logging
 from pathlib import Path
+from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -24,18 +25,25 @@ from .utils import (
 
 
 class BLMDataFetcher:
-    def __init__(self, d_t="30M", BLM_var="LHC.BLMI:LOSS_RS09", pbar=True, mute=False):
+    def __init__(
+        self,
+        d_t: str = "30M",
+        BLM_var: str = "LHC.BLMI:LOSS_RS09",
+        pbar: bool = True,
+        mute: bool = False,
+    ):
         """This class handles the fetching and loading of BLM data.
+
         It will query the timber/CALS db for the data and metadata, figure out
-        and load the appropriate BLM type & coord mapping.
+        and load the appropriate BLM type & DCUM mapping.
 
         Args:
-            d_t (str, optional): Due to timber detch size limitations, it
-                will be split into chunks of d_t. d_t must be a pd.Timedelta
-                format str, e.g. 30M, 1H, 10S, ...
-            BLM_var (str, optional): Timber/CALS BLM measurement variable.
-            pbar (bool, optional): controls whether to display progessbars.
-            mute (bool, optional): if True silences any progress prints.
+            d_t: Due to timber detch size limitations, it will be split into
+                chunks of d_t. d_t must be a pd.Timedelta format str, e.g. 30M,
+                1H, 10S, ...
+            BLM_var: Timber/CALS BLM measurement variable.
+            pbar: controls whether to display progessbars.
+            mute: if True silences any progress prints.
         """
         # progress bar settings
         PBar.use_tqdm = pbar
@@ -56,18 +64,18 @@ class BLMDataFetcher:
         self._logger = logging.getLogger(__name__)
         self._db = DB
 
-    def clear_header(self):
+    def clear_header(self) -> None:
         """Clears cached headers."""
         self._logger.debug("Clearing headers.")
         self.__header = None
 
-    def from_datetimes(self, t1, t2, **kwargs):
+    def from_datetimes(self, t1: pd.Timestamp, t2: pd.Timestamp, **kwargs) -> BLMData:
         """Create a BLMData instance with data for the requested interval.
         Note: the time interval cannot cross fill boundaries.
 
         Args:
-            t1 (Datetime): interval start.
-            t2 (Datetime): interval end.
+            t1: interval start.
+            t2: interval end.
             **kwargs: passed to BLMData.__init__.
 
         Returns:
@@ -131,17 +139,21 @@ class BLMDataFetcher:
         return BLMData(data, meta, **kwargs)
 
     def from_fill(
-        self, fill_number, beam_modes="all", unique_beam_modes=False, **kwargs
-    ):
+        self,
+        fill_number: int,
+        beam_modes: str = "all",
+        unique_beam_modes: bool = False,
+        **kwargs,
+    ) -> BLMData:
         """Create a BLMData instance with data for the requested fill and
         beam modes.
 
         Args:
-            fill_number (int): fill of interest.
-            beam_modes (str/list, optional): either 'all' to get data for
+            fill_number: fill of interest.
+            beam_modes: either 'all' to get data for
                  all beam modes, or a list of beam modes to only request a
                  subset.
-            unique_beam_modes (bool, optional): If a fill contains multiple of
+            unique_beam_modes: If a fill contains multiple of
                 the same beam mode, they will be uniquified, INJPHYS, INJPHYS
                 --> INJPHYS, INJPHYS_2. Setting unique_beam_modes to True and
                 providing INJPHYS_2 in beam_modes will select the second
@@ -149,7 +161,7 @@ class BLMDataFetcher:
             **kwargs: passed to BLMData.__init__.
 
         Returns:
-            BLMData: BLMData instance with the desired data.
+            BLMData for the requested fill number.
 
         Raises:
             ValueError: if no data is found.
@@ -163,16 +175,16 @@ class BLMDataFetcher:
             raise ValueError("No data found.")
         return BLMData(data, meta, context=bm, **kwargs)
 
-    def bg_from_INJPROT(self, fill_number):
+    def bg_from_INJPROT(self, fill_number: int) -> BLMData:
         """Fetches BLM data of the INJPROT beam mode when there is no beam.
 
         Args:
-            fill_number (int): fill number of the fill of interest.
+            fill_number: fill number of the fill of interest.
 
         Returns:
             BLMData: BLMData instance with the INJPROT background data.
         """
-        fills, bm = self._fetch_beam_modes(
+        _, bm = self._fetch_beam_modes(
             fill_number=fill_number, subset=["INJPROT"], unique_subset=True
         )
 
@@ -201,46 +213,38 @@ class BLMDataFetcher:
 
     def bg_from_ADT_trigger(
         self,
-        trigger_t,
-        dt_prior="0S",
-        dt_post="2S",
-        look_back="2H",
-        look_forward="5S",
-        min_bg_dt="20S",
-        max_bg_dt="10min",
-    ):
+        trigger_t: pd.Timestamp,
+        dt_prior: str = "0S",
+        dt_post: str = "2S",
+        look_back: str = "2H",
+        look_forward: str = "5S",
+        min_bg_dt: str = "20S",
+        max_bg_dt: str = "10min",
+    ) -> BLMData:
         """Fetches the appropriate background data by looking at the triggers
         of the ADT and figuring out a correct time range, where no triggers
         occured.
 
         Args:
-            trigger_t (Datetime, optional): Time of ADT trigger, if None, will
-                take the timestamp of the first
-                value.
-            dt_prior (str, optional): time delta prior to adt turn on.
-            dt_post (str, optional): time delta post previous adt turn off.
-            look_back (str, optional): look back from trigger_t when
-                fetching adt trigger data.
-            look_forward (str, optional): look forward from trigger_t when
-                fetching adt trigger data.
-            min_bg_dt (str, optional): minimum amount of time where no ADT
-                blowup triggers occur.
-            max_bg_dt (str, optional): maximum amount of time where no ADT
-                blowup triggers occur, to limit of the amount of timber
-                fetches.
+            trigger_t: Time of ADT trigger, if None, will take the timestamp of
+                the first value.
+            dt_prior: time delta prior to adt turn on.
+            dt_post: time delta post previous adt turn off.
+            look_back: look back from trigger_t when fetching adt trigger data.
+            look_forward: look forward from trigger_t when fetching adt trigger
+                data.
+            min_bg_dt: minimum amount of time where no ADT blowup triggers occur.
+            max_bg_dt: maximum amount of time where no ADT blowup triggers occur,
+                to limit of the amount of timber fetches.
 
         Returns:
-            DataFrame: DataFrame containing the background signal.
+            DataFrame containing the background signal.
 
         Raises:
             ValueError: if unable to find an region in time with no ADT trigger
                 respecting the desired constraints.
         """
-        if trigger_t is None:
-            trigger_t = self.data.index.get_level_values("timestamp")[0]
-        else:
-            trigger_t = sanitize_t(trigger_t)
-
+        trigger_t = sanitize_t(trigger_t)
         min_bg_dt = pd.Timedelta(min_bg_dt)
         max_bg_dt = pd.Timedelta(max_bg_dt)
         dt_prior = pd.Timedelta(dt_prior)
@@ -297,38 +301,36 @@ class BLMDataFetcher:
 
     def iter_from_ADT(
         self,
-        t1,
-        t2,
-        look_forward="5S",
-        look_back="0S",
-        planes=["H", "V"],
-        beams=[1, 2],
-        yield_background=False,
-        include=["trigger", "amp", "length", "gate"],
-        conditions={},
-    ):
+        t1: pd.Timestamp,
+        t2: pd.Timestamp,
+        look_forward: str = "5S",
+        look_back: str = "0S",
+        planes: List[str] = ["H", "V"],
+        beams: List[int] = [1, 2],
+        yield_background: bool = False,
+        include: List[str] = ["trigger", "amp", "length", "gate"],
+        conditions: Dict[str, Callable[[float], bool]] = {},
+    ) -> Iterator[Union[Tuple[BLMData, Optional[BLMData]], BLMData]]:
         """Generator of BLMData instances around ADT blowup triggers.
 
         Args:
-            t1 (Datetime): interval start.
-            t2 (Datetime): interval end.
-            look_forward (str, optional): Timedelta format string, controls
-                how much data after ADT trigger to fetch.
-            look_back (str, optional): Timedelta format string, controls how
-                much data before ADT trigger to fetch.
-            planes (list, optional): ADT trigger planes of interest.
-            beams (list, optional): ADT trigger beams of itnerest.
-            yield_background (bool, optional): yield both the BLM data nd the
-                BLM background.
-            include (list, optional): which ADT information to fetch, must be
-                a key of utils.BEAM_META. Will be passed on the the returned
-                BLMData's context attribute.
-            conditions (dict, optional): dictionnay containing as key an
-                element of "include" and value a function returning a bool.
+            t1: interval start.
+            t2: interval end.
+            look_forward: Timedelta format string, controls how much data after
+                ADT trigger to fetch.
+            look_back: Timedelta format string, controls how much data before ADT
+                trigger to fetch.
+            planes: ADT trigger planes of interest.
+            beams: ADT trigger beams of itnerest.
+            yield_background: yield both the BLM data and the BLM background.
+            include: which ADT information to fetch, must be a key of utils.BEAM_META.
+                Will be passed on the the returned BLMData's context attribute.
+            conditions: dictionnay containing as key an element of "include" and
+                value a function returning a bool.
                 Example:
-                conditions={'amp': lambda x: x > 0.6} will only return data for
-                ADT triggers with an excitation amplitude > 0.6. Multiple
-                condition will be combined with AND logic.
+                    conditions={'amp': lambda x: x > 0.6} will only return data for
+                    ADT triggers with an excitation amplitude > 0.6. Multiple
+                    condition will be combined with AND logic.
 
         Yields:
             BLMData: BLMData instance with data surrounding the ADT
@@ -396,16 +398,18 @@ class BLMDataFetcher:
                     continue
                 yield out
 
-    def _fetch_beam_modes(self, fill_number, **kwargs):
+    def _fetch_beam_modes(
+        self, fill_number: int, **kwargs
+    ) -> Tuple[dict, pd.DataFrame]:
         """Gets the beam mode timing data.
 
         Args:
-            fill_number (int): fill of interest.
+            fill_number: fill of interest.
             **kwargs: forwarded to utils.beammode_to_df
 
         Returns:
-            tuple (dict, DataFrame): dict containing Datetime of fill start
-                time & fill end ts, DataFrame of beam mode start & end.
+            A dictionary containing Datetime of fill start time & fill end ts,
+                DataFrame of beam mode start & end.
         """
         bm_t = self._db.getLHCFillData(fill_number=fill_number)
         # put fill start and end into dict
@@ -417,17 +421,20 @@ class BLMDataFetcher:
         return fill_t, bm_df
 
     @staticmethod
-    def _date_chunk(start, end, diff):
+    def _date_chunk(
+        start: pd.Timestamp, end: pd.Timestamp, diff: pd.Timedelta
+    ) -> Iterator[pd.Timestamp]:
         """Create time chunks of size diff, between start and end.
+
         Note: the start and end times will always be included.
 
         Args:
-            start (Datetime): start time.
-            end (Datetime): end time.
-            diff (Timedelta): desired time chunks.
+            start: start time.
+            end: end time.
+            diff: desired time chunks.
 
         Yields:
-            Datetime: chunk boundary.
+            Chunk boundaries.
         """
         intv = (end - start) // diff
         yield start
@@ -435,14 +442,14 @@ class BLMDataFetcher:
             yield (start + diff * i)
         yield end
 
-    def fetch_meta(self, t):
+    def fetch_meta(self, t: pd.Timestamp) -> pd.DataFrame:
         """Gets the metadata (dcum and type) corresponding to the requested timestamp.
 
         Args:
-            t (Datetime): Time of data.
+            t: Time of data.
 
         Returns:
-            DataFrame: DataFrame containing blm, position and type.
+            DataFrame containing blm, position and type.
         """
         dcum_df = files_to_df(self.__dcum_folder)
         meta_time_ind = dcum_df.index.get_loc(t, method="ffill")
@@ -454,14 +461,14 @@ class BLMDataFetcher:
         meta = meta.set_index("blm")
         return meta
 
-    def fetch_logging_header(self, t):
+    def fetch_logging_header(self, t: pd.Timestamp) -> List[str]:
         """Fetch the fill's column names from independent logging headers.
 
         Args:
-            t (DateTime): Time of data.
+            t: Time of data.
 
         Returns:
-            list: list of columns containing the name of BLMs.
+            list of columns containing the name of BLMs.
         """
         blms = self.fetch_meta(t).index.tolist()
         blms = [
@@ -472,14 +479,14 @@ class BLMDataFetcher:
         ]
         return blms
 
-    def fetch_manual_header(self, t):
+    def fetch_manual_header(self, t: pd.Timestamp) -> List[str]:
         """Fetch the fill's column names from manual header files.
 
         Args:
-            t (DateTime): Time of data.
+            t: Time of data.
 
         Returns:
-            list: list of columns containing the name of BLMs.
+            list of columns containing the name of BLMs.
         """
         # TODO: this order of these headers can be slightly off...
         manual_header_df = files_to_df(self.__manual_headers_folder)
@@ -493,7 +500,7 @@ class BLMDataFetcher:
 
         return blms
 
-    def fetch_custom_header(self, t):
+    def fetch_custom_header(self, t: pd.Timestamp) -> List[str]:
         custom_header_df = files_to_df(self.__custom_headers_folder)
         custom_header_ind = custom_header_df.index.get_loc(t, method="ffill")
         custom_header_file = (
@@ -505,14 +512,14 @@ class BLMDataFetcher:
 
         return blms
 
-    def fetch_timber_header(self, t):
+    def fetch_timber_header(self, t: pd.Timestamp) -> List[str]:
         """Fetch the fill's column names from timber.
 
         Args:
-            t (Datetime): time of data.
+            t: time of data.
 
         Returns:
-            list: list of columns containing the name of BLMs.
+            list of columns containing the name of BLMs.
         """
         metadata = self._db.getMetaData(self.BLM_var)[self.BLM_var]
         metadata = pd.DataFrame(list(metadata[1]), index=to_datetime(metadata[0]))
@@ -520,15 +527,17 @@ class BLMDataFetcher:
         columns = row_from_time(metadata, t, method="ffill").dropna().tolist()
         return columns
 
-    def _fetch_data_t(self, t1, t2):
+    def _fetch_data_t(
+        self, t1: pd.Timestamp, t2: pd.Timestamp
+    ) -> Optional[pd.DataFrame]:
         """Fetch the data for one time chunk.
 
         Args:
-            t1 (Datetime): Start time of the data fetch.
-            t2 (Datetime): End time of the data fetch.
+            t1: Start time of the data fetch.
+            t2: End time of the data fetch.
 
         Returns:
-            DataFrame: DataFrame containing the BLM data.
+            DataFrame containing the BLM data.
         """
         header_fetchers = [
             self.fetch_timber_header,
@@ -570,17 +579,15 @@ class BLMDataFetcher:
         data.index.name = "timestamp"
         return data
 
-    def _fetch_data_bm(self, beam_modes):
+    def _fetch_data_bm(self, beam_modes: pd.DataFrame):
         """Fetch data for beam modes.
 
         Args:
-            beam_modes (DataFrame): DataFrame containing beam modes as
-                columns and "startTime", "endTime" as
-                index.
+            beam_modes: DataFrame containing beam modes as columns and "startTime",
+                "endTime" as index.
 
         Returns:
-            DataFrame: MultiIndex DataFrame containing the BLM data for the
-               beam modes.
+            MultiIndex DataFrame containing the BLM data for the beam modes.
         """
         # TODO: cleanup the pbar thing ...
         data = []

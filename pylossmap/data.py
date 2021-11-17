@@ -2,7 +2,9 @@ import copy
 import logging
 from functools import partial
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -10,23 +12,20 @@ from .blm_filters import Filters
 from .lossmap import LossMap
 from .plotting import plot_waterfall
 from .timber_vars import PRIMARY_BLM_7
+from .type_specs import PathSpec
 from .utils import BEAM_META, DB, row_from_time, sanitize_t
-
-# TODO: it would be quite cool to have the lossmap filtering and processing
-# methods also work for the BLMData object. Maybe the LossMap object should be
-# merged with the BLMData object ?
 
 
 class BLMData(Filters):
     @classmethod
-    def load(cls, file_path, **kwargs):
+    def load(cls, file_path: PathSpec, **kwargs) -> "BLMData":
         """Load the data from a hdf file and create a BLMData instance.
 
         Args:
-            file_path (str/path): Path to hdf file from which to load the data.
+            file_path: Path to hdf file from which to load the data.
 
         Returns:
-            LossMapData: LossMapData instance with the loaded data.
+            BLMData instance with the loaded data.
 
         Raises:
             FileNotFoundError: If file does not exist.
@@ -45,16 +44,22 @@ class BLMData(Filters):
         data.columns = [c.rstrip() for c in header]
         return cls(data, meta, **kwargs)
 
-    def __init__(self, data, meta, BLM_filter=r"BLM[Q|B|A|T|2|E]I.*", context=None):
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        meta: pd.DataFrame,
+        BLM_filter: Union[str, List[str]] = r"BLM[Q|B|A|T|2|E]I.*",
+        context: Optional[Any] = None,
+    ):
         """This class handles the parsing/preprocessing & plotting of the BLM data.
 
         Args:
-            data (DataFrame): MultiIndex DataFrame containing the BLM
+            data: MultiIndex DataFrame containing the BLM
                 measurements, for the various beam modes & query chunks.
-            meta (DataFrame): DataFrame containing the BLM metadata.
-            BLM_filter (list/str, optional): regex str of list of regex strs,
+            meta: DataFrame containing the BLM metadata.
+            BLM_filter: regex str of list of regex strs,
                 BLMs of interest.
-            context (optional): additional info.
+            context: additional info.
         """
         self._logger = logging.getLogger(__name__)
         self.context = context
@@ -91,23 +96,27 @@ class BLMData(Filters):
             )
             setattr(self, name, meth)
 
-    def fetch_var(self, v, timeseries=True, return_raw=False, **kwargs):
+    def fetch_var(
+        self,
+        v: str,
+        timeseries: bool = True,
+        return_raw: bool = False,
+        **kwargs,
+    ) -> Union[pd.DataFrame, Tuple[np.ndarray, np.ndarray]]:
         """Gets provided timber variable data from timber for the current time range.
 
         Args:
-            v (str, optional): Timber variable.
-            timeseries (bool, optional): whether Timber variable returns a
-                timeseries.
-            return_raw (bool, optional): if True, returns the timestamps along
-                with the data.
+            v: Timber variable.
+            timeseries: whether Timber variable returns a timeseries.
+            return_raw: if True, returns the timestamps along with the data.
+            **kwargs: if `v` is a formattable string, `v.format(**kwargs)`
+
         Returns:
-            DataFrame or tuple: Dataframe with timestamp and data. If
-                return_raw is True, a tuple containing timestamp and data
-                arrays.
+            DataFrame or tuple: Dataframe with timestamp and data. If return_raw
+                is True, a tuple containing timestamp and data arrays.
         """
         t1 = self.df.index.get_level_values("timestamp")[0]
         t2 = None
-        # key, timeseries = BEAM_META[v]
         if timeseries:
             t2 = self.df.index.get_level_values("timestamp")[-1]
         try:
@@ -123,7 +132,7 @@ class BLMData(Filters):
             out = out.set_index("timestamp")
         return out
 
-    def copy(self):
+    def copy(self) -> "BLMData":
         """Creates a copy of the current instance.
 
         Returns:
@@ -132,18 +141,18 @@ class BLMData(Filters):
         # TODO: check if this fails, _thread.RLock...
         return copy.deepcopy(self)
 
-    def filter(self, reg, mask=False):
+    def filter(self, reg: str, mask: bool = False) -> Union["BLMData", np.ndarray]:
         """Applies a regexp filter to the BLM names a returns a filtered BLMData
         instance.
 
         Args:
-            reg (str): regexp string.
-            mask (bool, optional): if True will return a boolean mask array,
-                otherwise will return a filtered LossMap instance.
+            reg: regexp string.
+            mask: if True will return a boolean mask array, otherwise will return
+                a filtered LossMap instance.
 
         Returns:
-            BLMData or boolean array: BLMData instance or boolean mask array
-                containing the BLMs which matched the regex string.
+            BLMData instance or boolean mask array containing the BLMs which matched
+                the regex string.
         """
 
         if not mask:
@@ -153,21 +162,21 @@ class BLMData(Filters):
             ret = self.df.columns.str.contains(reg, regex=True)
         return ret
 
-    def _blm_list_filter(self, blm_list):
+    def _blm_list_filter(self, blm_list: List[str]) -> "BLMData":
         ret = self.copy()
         blm_list_common = list(set(blm_list) & set(ret.df.columns))
         ret.df = ret.df[blm_list_common]
         return ret
 
-    def find_max(self, BLM_max=None):
+    def find_max(self, BLM_max: Optional[List[str]] = None) -> pd.DataFrame:
         """Finds the max timestamp and chunk in which the max occured.
 
         Args:
-            BLM_max (list, optional): List of BLMs, defaults to the primary
+            BLM_max: List of BLMs, defaults to the primary
                 blms in IR 7.
 
         Returns:
-            DataFrame: DataFrame containing a tuple: (mode, datetime).
+            DataFrame containing a tuple: (mode, datetime).
         """
         if BLM_max is None:
             BLM_max = PRIMARY_BLM_7[1] + PRIMARY_BLM_7[2]
@@ -177,12 +186,12 @@ class BLMData(Filters):
         # only keep timestamp
         return maxes.applymap(lambda x: x[1])
 
-    def iter_max(self, BLM_max=None):
+    def iter_max(self, BLM_max: Optional[List[str]] = None):
         """Creates an generator of ((mode, datetime), BLM_max), where mode and
         datetime correspond to the max value of BLM_max.
 
         Args:
-            BLM_max (list, optional): List of BLMs, defaults to the primary
+            BLM_max: List of BLMs, defaults to the primary
                 blms in IR 7.
 
         Returns:
@@ -201,7 +210,7 @@ class BLMData(Filters):
         )
         return ((r[0], r[1]["blm"].tolist()) for r in maxes)
 
-    def _get_metadata(self, meta):
+    def _get_metadata(self, meta: pd.DataFrame) -> pd.DataFrame:
         """Gets the coords and type for the blms in the "df" DataFrame, for blms
         not found in meta, sets the type to "other" and coord to None.
 
@@ -226,26 +235,29 @@ class BLMData(Filters):
         )
 
     def loss_map(
-        self, datetime=None, row=None, context=None, background=None, **kwargs
-    ):
+        self,
+        datetime: Optional[pd.Timestamp] = None,
+        row: Optional[pd.Series] = None,
+        context: Optional[Any] = None,
+        background: Optional[pd.Series] = None,
+        **kwargs,
+    ) -> LossMap:
         """Creates a LossMap instance.
 
         Args:
-            datetime (Datetime, optional): If provided, is used to find the
-                row in the data closest to datetime.
-            row (Series, optional): Row of data for which to create the LossMap
-                instance.
-            context (optional): if None, will use self.context.
-            background (Series, optional): if provided will create a LossMap
-                instance for the background and set is as the background of the
-                returned LossMap instance.
+            datetime: If provided, is used to find the row in the data closest
+                to datetime.
+            row: Row of data for which to create the LossMap instance.
+            context: if None, will use self.context.
+            background: if provided will create a LossMap instance for the background
+                and set is as the background of the returned LossMap instance.
             **kwargs: passed to LossMap.__init__.
 
         Returns:
-            LossMap: LossMap instance of the desired data.
+            LossMap instance of the desired data.
 
         Raises:
-            ValueError: If neither t nor row is provided.
+            ValueError: If neither `datetime` nor `row` is provided.
         """
         if datetime is None and row is None:
             raise ValueError('Provide either "datetime", or "row".')
@@ -279,12 +291,16 @@ class BLMData(Filters):
             LM.set_background(background)
         return LM
 
-    def save(self, file_path):
+    def save(self, file_path: PathSpec):
         """Save the DataFrames to hdf file/keys.
 
+        Keys:
+            data: contains the blm data.
+            meta: contains the blm metadata.
+            header: contains the blm header, i.e. the BLM names.
+
         Args:
-            file_path (str/path): Path to hdf file in which to save the
-                DataFrames.
+            file_path: Path to hdf file in which to save the DataFrames.
 
         Raises:
             OSError: If file already exists.
@@ -312,15 +328,20 @@ class BLMData(Filters):
         # with open(file_path.with_suffix('.csv'), 'w') as fp:
         #     fp.write('\n'.join(self.df.columns))
 
-    def plot(self, data=None, title=None, **kwargs):
-        """Plots a waterfall plot of the data. Note, will produce multiple
-        figures if data contains a mode index.
+    def plot(
+        self, data: Optional[pd.DataFrame] = None, title: Optional[str] = None, **kwargs
+    ) -> Union[Tuple[plt.Figure, plt.Axes], Dict[str, Tuple[plt.Figure, plt.Axes]]]:
+        """Plots a waterfall plot of the data. Note, will produce multiple figures
+        if data contains a mode index.
 
         Args:
-            data (DataFrame, optional): DataFrame containing the BLM data.
-            title (str, optional): figure title, '{mode}' gets replaced with
-               the beam mode.
+            data: DataFrame containing the BLM data.
+            title: figure title, '{mode}' gets replaced with the beam mode.
             **kwargs: passed to plotting.plot_waterfall
+
+        Returns:
+            If the data contains multiple beam modes, returns a dictionary of beam
+                mode and Figure, Axes. Otherwise just the Figure and Axes.
         """
         # TODO: fix this format mode thing
         if data is None:
@@ -338,12 +359,12 @@ class BLMData(Filters):
         else:
             return plot_waterfall(data=data, meta=self.meta, **kwargs)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, float, str]) -> LossMap:
         """
         Args:
-            key (int, float, str): if int then the corresponding data row is
-                used to create a LossMap instance. If float or str then assumed
-                unix time or pd.to_datetime compatible str.
+            key: if int then the corresponding data row is used to create a LossMap
+                instance. If float or str then assumed unix time or pd.to_datetime
+                compatible str.
 
         Returns:
             LossMap: LossMap instance with the desired BLM data.
@@ -356,7 +377,7 @@ class BLMData(Filters):
             time = sanitize_t(key)
         return self.loss_map(datetime=time)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = "df:\n" + self.df.__repr__() + "\nmeta:\n" + self.meta.__repr__()
         if self.context is not None:
             out += "\ncontext:\n" + self.context.__repr__()
