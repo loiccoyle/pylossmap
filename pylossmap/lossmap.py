@@ -105,7 +105,7 @@ class LossMap(Filters):
         """
         return self._background
 
-    def _check_datetime(self):
+    def _check_datetime(self) -> None:
         if self.datetime is None:
             raise ValueError(
                 "'datetime' attribute must be set to be able to fetch Timber data."
@@ -249,7 +249,7 @@ class LossMap(Filters):
             + bg_str
         )
 
-    def plot(self, data=None, **kwargs):
+    def plot(self, data: Optional[pd.Series] = None, **kwargs):
         if data is None:
             data = self.df["data"]
         return plot_loss_map(data=data, meta=self.meta, **kwargs)

@@ -64,7 +64,7 @@ class BLMDataFetcher:
         self._logger = logging.getLogger(__name__)
         self._db = DB
 
-    def clear_header(self):
+    def clear_header(self) -> None:
         """Clears cached headers."""
         self._logger.debug("Clearing headers.")
         self.__header = None

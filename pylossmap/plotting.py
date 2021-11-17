@@ -21,7 +21,7 @@ def plot_loss_map(
     ylim: Tuple[float, float] = (1e-7, 1e1),
     ax: Optional[plt.Axes] = None,
     **kwargs,
-):
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a loss map from data.
 
     Args:
@@ -122,7 +122,7 @@ def plot_waterfall(
     min_max_quantile: float = 0.85,
     ax: Optional[plt.Axes] = None,
     fill_missing: bool = True,
-):
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a water plot of the data.
 
     Args:

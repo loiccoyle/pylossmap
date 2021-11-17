@@ -36,7 +36,7 @@ TYPE_MAP = {
 }
 
 
-def name_to_type(name: str, on_fail="other") -> str:
+def name_to_type(name: str, on_fail: str = "other") -> str:
     """Converts find the type corresponding a given BLM name.
 
     Args:

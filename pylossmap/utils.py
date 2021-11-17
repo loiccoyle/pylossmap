@@ -116,7 +116,7 @@ def fill_from_time(t: TimeSpec, fuzzy_t: str = "12H") -> dict:
     raise ValueError("Fill not found.")
 
 
-def beammode_from_time(t: TimeSpec, fill: Optional[dict] = None, **kwargs):
+def beammode_from_time(t: TimeSpec, fill: Optional[dict] = None, **kwargs) -> dict:
     """gets the beam mode at a given timestamp.
 
     Args:
@@ -197,7 +197,7 @@ def get_ADT(
     planes: List[str] = ["H", "V"],
     beams: List[int] = [1, 2],
     include: List[str] = ["amp", "length", "trigger"],
-):
+) -> pd.DataFrame:
     """Gets ADT blowup trigger data for the requested time interval, beam and plane.
 
     Args:
@@ -205,12 +205,10 @@ def get_ADT(
         t2: end of interval.
         planes: requested planes.
         beams: requested beams.
-        include: list of ADT metrcis to fetch from timber.
-            Must be a key of ADT_META.
+        include: list of ADT metrcis to fetch from timber. Must be a key of ADT_META.
 
     Returns:
-        DataFrame: DataFrame as index the timestamp and columns the
-            triggers of the beams/planes.
+        DataFrame as index the timestamp and columns the triggers of the beams/planes.
     """
     if not set(include) <= set(ADT_META.keys()):
         raise ValueError(f'"include" keys must be in {ADT_META.key()}')

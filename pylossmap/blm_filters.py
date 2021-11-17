@@ -35,7 +35,7 @@ class Filters:
         """
         return self.filter(rf"BLMQ[IE]\.(0[7-9]|10|11)[RL][37]", mask=mask)
 
-    def IR(self, *IRs, mask=False):
+    def IR(self, *IRs, mask: bool = False):
         """Filters the BLMs based on the IR(s).
 
         Args:
